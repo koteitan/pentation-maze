@@ -7,7 +7,7 @@ import Data.List (uncons)
 --
 --         2  , 3  , 5  , 7  , 11 
 penta :: (Int ,Int ,Int ,Int ,Int ) ->      (Int ,Int ,Int ,Int ,Int )
-penta    ( 0  , b  , c  , d  , e  ) =       ( 0  , b  , c  , d  , e  )
+penta    ( 0  , b  , _  , _  , _  ) =       ( 0  , b  , 0  , 0  , 0  )
 penta    ( a  , 0  , 0  , _  , _  ) = penta ( a-1, 2  , 0  , 0  , 0  )
 penta    ( a  , b  , 0  , 0  , _  ) = penta ( a  , b-1, 2  , 0  , 0  )
 penta    ( a  , 0  , c  , _  , _  ) = penta ( a-1, c  , 0  , 0  , 0  )
