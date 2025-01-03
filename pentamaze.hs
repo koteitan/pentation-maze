@@ -5,16 +5,16 @@ import Data.List (uncons)
 -- penta(a,0,0,0,0) = (0,b,0,0,0)
 --   b = pentation function of a
 --
---         2  , 3  , 5  , 7  , 11 
+--        2^a  3^b  5^c  7^d  11^e           
 penta :: (Int ,Int ,Int ,Int ,Int ) ->      (Int ,Int ,Int ,Int ,Int )
-penta    ( 0  , b  , _  , _  , _  ) =       ( 0  , b  , 0  , 0  , 0  )
-penta    ( a  , 0  , 0  , _  , _  ) = penta ( a-1, 2  , 0  , 0  , 0  )
-penta    ( a  , b  , 0  , 0  , _  ) = penta ( a  , b-1, 2  , 0  , 0  )
-penta    ( a  , 0  , c  , _  , _  ) = penta ( a-1, c  , 0  , 0  , 0  )
-penta    ( a  , b  , c  , 0  , 0  ) = penta ( a  , b  , c-1, 2  , 0  )
-penta    ( a  , b  , 0  , d  , _  ) = penta ( a  , b-1, d  , 0  , 0  )
-penta    ( a  , b  , c  , 0  , e  ) = penta ( a  , b  , c-1, e  , 0  )
-penta    ( a  , b  , c  , d  , e  ) = penta ( a  , b  , c  , d-1, e+2)
+penta    ( 0  , b  , _  , _  , _  ) =       ( 0  , b  , 0  , 0  , 0  ) -- if      x mod  2!=0 then end
+penta    ( a  , 0  , 0  , _  , _  ) = penta ( a-1, 2  , 0  , 0  , 0  ) -- else if x mod 15!=0 then x <- x*(  9/2)
+penta    ( a  , b  , 0  , 0  , _  ) = penta ( a  , b-1, 2  , 0  , 0  ) -- else if x mod 35!=0 then x <- x*( 25/3)
+penta    ( a  , 0  , c  , _  , _  ) = penta ( a-1, c  , 0  , 0  , 0  ) -- else if x mod  3!=0 then x <- x*(  1/2)*(  3/5)^c
+penta    ( a  , b  , c  , 0  , 0  ) = penta ( a  , b  , c-1, 2  , 0  ) -- else if x mod 77!=0 then x <- x*( 49/5)
+penta    ( a  , b  , 0  , d  , _  ) = penta ( a  , b-1, d  , 0  , 0  ) -- else if x mod  5!=0 then x <- x*(  1/3)*(  5/7)^d
+penta    ( a  , b  , c  , 0  , e  ) = penta ( a  , b  , c-1, e  , 0  ) -- else if x mod  7!=0 then x <- x*(  1/5)*( 7/11)^e
+penta    ( a  , b  , c  , d  , e  ) = penta ( a  , b  , c  , d-1, e+2) -- else                     x <- x*(121/7)
 
 testpenta :: Int -> IO ()
 testpenta x = do
