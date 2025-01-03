@@ -8,11 +8,11 @@ import Data.List (uncons)
 --         2  , 3  , 5  , 7  , 11 
 penta :: (Int ,Int ,Int ,Int ,Int ) ->      (Int ,Int ,Int ,Int ,Int )
 penta    ( 0  , b  , c  , d  , e  ) =       ( 0  , b  , c  , d  , e  )
-penta    ( a  , 0  , 0  , 0  , 0  ) = penta ( a-1, 2  , 0  , 0  , 0  )
-penta    ( a  , b  , 0  , 0  , 0  ) = penta ( a  , b-1, 2  , 0  , 0  )
-penta    ( a  , 0  , c  , 0  , 0  ) = penta ( a-1, c  , 0  , 0  , 0  )
+penta    ( a  , 0  , 0  , _  , _  ) = penta ( a-1, 2  , 0  , 0  , 0  )
+penta    ( a  , b  , 0  , 0  , _  ) = penta ( a  , b-1, 2  , 0  , 0  )
+penta    ( a  , 0  , c  , _  , _  ) = penta ( a-1, c  , 0  , 0  , 0  )
 penta    ( a  , b  , c  , 0  , 0  ) = penta ( a  , b  , c-1, 2  , 0  )
-penta    ( a  , b  , 0  , d  , 0  ) = penta ( a  , b-1, d  , 0  , 0  )
+penta    ( a  , b  , 0  , d  , _  ) = penta ( a  , b-1, d  , 0  , 0  )
 penta    ( a  , b  , c  , 0  , e  ) = penta ( a  , b  , c-1, e  , 0  )
 penta    ( a  , b  , c  , d  , e  ) = penta ( a  , b  , c  , d-1, e+2)
 
@@ -56,11 +56,26 @@ testmod3 x = do
   let (a, b, c) = mod3 (0, x, 0)
   print (a, b, c)
 ----------------------------------------------------
+-- div3(0,3x,0) = (0,0,x)
+-- by only inc/dec
+div3 :: (Int ,Int ,Int ) ->     (Int ,Int  ,Int )
+div3    ( 0  , 0  , y  ) =      ( 0  , 0   , y  )
+div3    ( 0  , x  , y  ) = div3 ( 1  , x   , y+1)
+div3    ( 1  , x  , y  ) = div3 ( 2  , x-1 , y  )
+div3    ( 2  , x  , y  ) = div3 ( 3  , x-1 , y  )
+div3    ( 3  , x  , y  ) = div3 ( 0  , x-1 , y  )
+
+testdiv3 :: Int -> IO ()
+testdiv3 x = do
+  let (a, b, c) = div3 (0, x, 0)
+  print (a, b, c)
+----------------------------------------------------
+
 main :: IO ()
 main = do
   args <- getArgs
   case uncons args of
-    Just (xStr, _) -> testmod3(read xStr :: Int)
+    Just (xStr, _) -> testpenta(read xStr :: Int)
     Nothing        -> loop                        
 
 loop :: IO ()
@@ -68,5 +83,5 @@ loop = do
   putStrLn "Enter a number (or press Ctrl+C to exit):"
   input <- getLine
   let x = read input :: Int
-  testmod3 x
+  testpenta x
   loop
