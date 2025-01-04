@@ -9,8 +9,18 @@
     <h1>Canvas to PNG Example</h1>
     <canvas id="myCanvas" width="400" height="400" style="border:1px solid #000;"></canvas>
     <br>
-    <button id="draw">draw</button>
-    <button id="save">save png</button>
+    <form id="form0">
+      <button id="draw">draw</button>
+      <button id="save">save png</button>
+      <input type="radio" name="prime" value="0" id="primes" checked>2
+      <input type="radio" name="prime" value="1" id="primes">3
+      <input type="radio" name="prime" value="2" id="primes">5
+      <input type="radio" name="prime" value="3" id="primes">7
+      <input type="radio" name="prime" value="4" id="primes">11
+      <input type="radio" name="prime" value="5" id="primes">13
+      <input type="radio" name="prime" value="6" id="primes">17
+      <input type="radio" name="prime" value="7" id="primes">19
+    </form>
     <script src="main.js"></script>
 </body>
 </html>

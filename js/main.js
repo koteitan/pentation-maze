@@ -1,11 +1,34 @@
+const neq    = 14; //number of equations
+const nprime =  8; //number of prime numbers
+const blockers = [ //blockers[ie][ip]
+// 2^a  3^b  5^c  7^d  11^e  13   17   19
+   [1  , 0  , 1  , 0  , 0  ,  0  ,  0 ,  0],
+   [0  , 1  , 1  , 0  , 0  ,  0  ,  0 ,  0],
+   [0  , 0  , 1  , 1  , 0  ,  0  ,  0 ,  0],
+   [0  , 1  , 0  , 0  , 0  ,  0  ,  0 ,  0],
+   [0  , 0  , 0  , 1  , 1  ,  0  ,  0 ,  0],
+   [0  , 0  , 1  , 0  , 0  ,  0  ,  0 ,  0],
+   [0  , 0  , 0  , 1  , 0  ,  0  ,  0 ,  0],
+   [0  , 0  , 0  , 0  , 0  ,  0  ,  0 ,  0],
+   [0  , 0  , 1  , 0  , 0  ,  1  ,  0 ,  0],
+   [0  , 0  , 0  , 0  , 0  ,  1  ,  0 ,  0],
+   [0  , 0  , 0  , 1  , 0  ,  0  ,  1 ,  0],
+   [0  , 0  , 0  , 0  , 0  ,  0  ,  1 ,  0],
+   [0  , 0  , 0  , 0  , 1  ,  0  ,  0 ,  0],
+   [0  , 0  , 0  , 0  , 0  ,  0  ,  0 ,  1]
+];
+
 // Select the canvas and button elements
 const canvas = document.getElementById('myCanvas');
 const context = canvas.getContext('2d');
-const saveButton = document.getElementById('save');
-const drawButton = document.getElementById('draw');
 
-// Add event listener to the button
-saveButton.addEventListener('click', () => {
+// Add event listener to option
+for(let i=0; i<nprime; i++){
+  form0.primes[i].addEventListener('click', () => {draw();});
+}
+
+
+form0.draw.addEventListener('click', () => {
     // Convert canvas content to a data URL (base64-encoded PNG)
     const image = canvas.toDataURL('image/png');
 
@@ -22,9 +45,9 @@ saveButton.addEventListener('click', () => {
 const draw = function() {
   const wx     = canvas.width;
   const wy     = canvas.height;
-  const neq    = 14; //number of equations
   const ntile  = neq*2;
   const margin = 100;
+  const selp   = parseInt(form0.primes.value);
   //floor
   let   tx     = Math.floor((wx-2*margin)/ntile);
   let   ty     = Math.floor((wy-2*margin)/ntile);
@@ -41,7 +64,7 @@ const draw = function() {
   //draw a brock
   context.strokeStyle = 'black';
   context.strokeRect(margin, margin, bx, by);
-  //draw axes number
+  //draw port number
   let fontsize = Math.floor(tx/2);
   context.font = fontsize + 'px Arial';
   context.textAlign    = 'center';
@@ -54,13 +77,26 @@ const draw = function() {
     context.fillText(i, margin-fontsize, margin+by-ty*i-fontsize);
   }
   //draw a path
-  context.beginPath();
-  context.moveTo(margin+tx, margin+ty);
-  for(let i=0; i<neq; i++){
-    context.lineTo(margin+tx*(i*2+1), margin+ty*(i*2+1));
+  context.strokeStyle = 'blue';
+  for(let ie=0; ie<neq; ie++){
+    if(blockers[ie][selp] == 1){
+      //connect bottom ports ie * 2 and ie * 2 + 1 by arc
+      context.beginPath();
+      context.arc(margin+tx*ie*2+tx, margin+by, tx/2, Math.PI, 0, false);
+      context.stroke();
+    }else{
+      //connect bottom and top by line
+      context.beginPath();
+      context.moveTo(margin+tx*ie*2+tx/2, margin+by);
+      context.lineTo(margin+tx*ie*2+tx/2, margin);
+      context.stroke();
+      context.beginPath();
+      context.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
+      context.lineTo(margin+tx*ie*2+tx+tx/2, margin);
+      context.stroke();
+    }
   }
 }
-drawButton.addEventListener('click', draw);
 
 window.onload = function() {
   resize();
@@ -73,4 +109,7 @@ const resize = () => {
   draw();
 }
 window.addEventListener('resize', resize);
+
+
+
 
