@@ -5,7 +5,7 @@ import Debug.Trace (trace)
 -- penta(a,0,0,0,0,0) = (0,b,0,0,0,0)
 --   b = pentation function of a
 --
---        2^a  3^b  5^c  7^d  11^e   f           2^a  3^b  5^c  7^d  11^e  f
+--       2^a  3^b  5^c  7^d  11^e   f           2^a  3^b  5^c  7^d  11^e  f
 penta:: (Int ,Int ,Int ,Int ,Int ,Int ) ->      (Int ,Int ,Int ,Int ,Int ,Int ) --  penta(x) =
 penta   ( 0  , b  , 0  , _  , _  ,  _ ) =       ( 0  , b  , 0  , 0  , 0  ,  1 ) -- 0:       x            if x%2 && x% 5        
 penta   ( a  , 0  , 0  , _  , _  ,  1 ) = penta_( a-1, 2  , 0  , 0  , 0  ,  1 ) -- 1: penta(x*   9/   2) if x%3 && x% 5 && x%13

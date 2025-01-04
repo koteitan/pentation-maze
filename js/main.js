@@ -46,7 +46,7 @@ const draw = function() {
   const wx     = canvas.width;
   const wy     = canvas.height;
   const ntile  = neq*2;
-  const margin = 100;
+  const margin = 20;
   const selp   = parseInt(form0.primes.value);
   //floor
   let   tx     = Math.floor((wx-2*margin)/ntile);
@@ -78,22 +78,50 @@ const draw = function() {
   }
   //draw a path
   context.strokeStyle = 'blue';
+  context.fillStyle   = 'blue';
   for(let ie=0; ie<neq; ie++){
     if(blockers[ie][selp] == 1){
-      //connect bottom ports ie * 2 and ie * 2 + 1 by arc
+      //connect bottom ports ie * 2 and ie * 2 + 1 by arc arrow
       context.beginPath();
-      context.arc(margin+tx*ie*2+tx, margin+by, tx/2, Math.PI, 0, false);
+      context.moveTo(margin+tx*ie*2+tx/2, margin+by);
+      context.lineTo(margin+tx*ie*2+tx/2, margin+by-ty);
+      context.arc(margin+tx*ie*2+tx, margin+by-ty, tx/2, Math.PI, 0, false);
+      context.lineTo(margin+tx*ie*2+tx+tx/2, margin+by);
       context.stroke();
+      //draw arrow
+      context.beginPath();
+      context.moveTo(margin+tx*ie*2+tx+tx/2     , margin+by     );
+      context.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+by-tx/2);
+      context.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+by-tx/2);
+      context.closePath();
+      context.fill();
+
     }else{
       //connect bottom and top by line
       context.beginPath();
       context.moveTo(margin+tx*ie*2+tx/2, margin+by);
       context.lineTo(margin+tx*ie*2+tx/2, margin);
       context.stroke();
+      //draw arrow
+      context.beginPath();
+      context.moveTo(margin+tx*ie*2+tx/2     , margin     );
+      context.lineTo(margin+tx*ie*2+tx/2+tx/4, margin+tx/2);
+      context.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+tx/2);
+      context.closePath();
+      context.fill();
+      //connect top ports ie * 2 and ie * 2 + 1 by line
       context.beginPath();
       context.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
       context.lineTo(margin+tx*ie*2+tx+tx/2, margin);
       context.stroke();
+      context.beginPath();
+      //draw arrow
+      context.moveTo(margin+tx*ie*2+tx+tx/2     , margin     );
+      context.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+tx/2);
+      context.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+tx/2);
+      context.closePath();
+      context.fill();
+
     }
   }
 }
