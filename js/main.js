@@ -17,6 +17,8 @@ const blockers = [ //blockers[ie][ip]
    [0  , 0  , 0  , 0  , 1  ,  0  ,  0 ,  0],
    [0  , 0  , 0  , 0  , 0  ,  0  ,  0 ,  1]
 ];
+const denom=[-1,0, 1, 0, 2, 1, 2, 3, 4, 1, 5, 2, 6, 3];
+const numer=[0, 9,25,13,49,17,19,21, 1, 3, 1, 5, 1, 7];
 
 // Select the canvas and button elements
 const canvas = document.getElementById('myCanvas');
@@ -83,9 +85,9 @@ const draw = function() {
     if(blockers[ie][selp] == 1){
       //connect bottom ports ie * 2 and ie * 2 + 1 by arc arrow
       context.beginPath();
-      context.moveTo(margin+tx*ie*2+tx/2, margin+by);
-      context.lineTo(margin+tx*ie*2+tx/2, margin+by-ty);
-      context.arc(margin+tx*ie*2+tx, margin+by-ty, tx/2, Math.PI, 0, false);
+      context.moveTo(margin+tx*ie*2+tx/2   , margin+by);
+      context.lineTo(margin+tx*ie*2+tx/2   , margin+by-ty/2);
+      context.arc   (margin+tx*ie*2+tx     , margin+by-ty/2, tx/2, Math.PI, 0, false);
       context.lineTo(margin+tx*ie*2+tx+tx/2, margin+by);
       context.stroke();
       //draw arrow
@@ -95,7 +97,6 @@ const draw = function() {
       context.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+by-tx/2);
       context.closePath();
       context.fill();
-
     }else{
       //connect bottom and top by line
       context.beginPath();
@@ -109,19 +110,36 @@ const draw = function() {
       context.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+tx/2);
       context.closePath();
       context.fill();
-      //connect top ports ie * 2 and ie * 2 + 1 by line
+    }
+    if(denom[ie]==selp){
+      //connect top port ie * 2+1 to left port ie * 2 + 1 by rounded L-shape linea
       context.beginPath();
-      context.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
-      context.lineTo(margin+tx*ie*2+tx+tx/2, margin);
+      context.moveTo(margin+tx*ie*2+tx+tx/2, margin);
+      context.lineTo(margin+tx*ie*2+tx+tx/2, margin+by-ty*(ie*2+1)-ty);
+      context.arc   (margin+tx*ie*2+tx     , margin+by-ty*(ie*2+1)-ty, tx/2, 0, Math.PI/2, false);
+      context.lineTo(margin                , margin+by-ty*(ie*2+1)-ty/2);
       context.stroke();
-      context.beginPath();
       //draw arrow
-      context.moveTo(margin+tx*ie*2+tx+tx/2     , margin     );
-      context.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+tx/2);
-      context.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+tx/2);
+      context.beginPath();
+      context.moveTo(margin                , margin+by-ty*(ie*2+1)-ty/2     );
+      context.lineTo(margin+tx/2           , margin+by-ty*(ie*2+1)-ty/2-tx/4);
+      context.lineTo(margin+tx/2           , margin+by-ty*(ie*2+1)-ty/2+tx/4);
       context.closePath();
       context.fill();
 
+    }else{
+      //connect right port ie * 2 + 1 to left port ie * 2 + 1 by line
+      context.beginPath();
+      context.moveTo(margin+bx, margin+by-ty*(ie*2+1)-ty/2);
+      context.lineTo(margin   , margin+by-ty*(ie*2+1)-ty/2);
+      context.stroke();
+      //draw arrow
+      context.beginPath();
+      context.moveTo(margin     , margin+by-ty*(ie*2+1)-ty/2     );
+      context.lineTo(margin+tx/2, margin+by-ty*(ie*2+1)-ty/2-tx/4);
+      context.lineTo(margin+tx/2, margin+by-ty*(ie*2+1)-ty/2+tx/4);
+      context.closePath();
+      context.fill();
     }
   }
 }
