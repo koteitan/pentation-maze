@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canvas to PNG</title>
+    <title>pentamaze</title>
 </head>
 <body>
-    <h1>Canvas to PNG Example</h1>
+    <h1>pentamaze</h1>
     <canvas id="myCanvas" width="400" height="400" style="border:1px solid #000;"></canvas>
     <br>
     <form id="form0">
       <button id="draw">draw</button>
-      <button id="save">save png</button>
-      <input type="radio" name="kind" value="0" id="kinds" checked>2
+      <button id="save">save png</button><br>
+      <input type="radio" name="kind" value="0" id="kinds">2
       <input type="radio" name="kind" value="1" id="kinds">3
       <input type="radio" name="kind" value="2" id="kinds">5
       <input type="radio" name="kind" value="3" id="kinds">7
@@ -20,11 +20,11 @@
       <input type="radio" name="kind" value="5" id="kinds">13
       <input type="radio" name="kind" value="6" id="kinds">17
       <input type="radio" name="kind" value="7" id="kinds">19
-      <input type="radio" name="kind" value="div" id="kinds">divider
-      <input type="radio" name="kind" value="amp" id="kinds">amplifier
+      <input type="radio" name="kind" value="start"  id="kinds">starter
+      <input type="radio" name="kind" value="diag"   id="kinds">diag
+      <input type="radio" name="kind" value="amp"    id="kinds" checked>amplifier
       <input type="radio" name="kind" value="bottom" id="kinds">bottom
-      <input type="radio" name="kind" value="diag" id="kinds">diag
-      <input type="radio" name="kind" value="thru" id="kinds">thru
+      <input type="radio" name="kind" value="thru"   id="kinds">thru
     </form>
     <script src="main.js"></script>
 </body>

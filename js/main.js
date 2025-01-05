@@ -1,6 +1,6 @@
 const neq    = 14; //number of equations
 const nprime =  8; //number of prime numbers
-const nkind  =  13; //number of kinds of blocks
+const nkind  = 13; //number of kinds of blocks
 const blockers = [ //blockers[ie][ip]
 // 2^a  3^b  5^c  7^d  11^e  13   17   19
    [1  , 0  , 1  , 0  , 0  ,  0  ,  0 ,  0],
@@ -90,41 +90,46 @@ const draw = function() {
     //draw primes
     const selp   = parseInt(form0.kinds.value);
     for(let ie=0; ie<neq; ie++){
+      //draw filter
       if(blockers[ie][selp] == 1){
-        //connect bottom ports ie * 2 and ie * 2 + 1 by arc arrow
+        //stop band
+        //connect top ports ie * 2  and ie * 2 + 1 by arc arrow
         context.beginPath();
-        context.moveTo(margin+tx*ie*2+tx/2   , margin+by);
-        context.lineTo(margin+tx*ie*2+tx/2   , margin+by-ty/2);
-        context.arc   (margin+tx*ie*2+tx     , margin+by-ty/2, tx/2, Math.PI, 0, false);
-        context.lineTo(margin+tx*ie*2+tx+tx/2, margin+by);
+        context.moveTo(margin+tx*ie*2+tx/2   , margin);
+        context.lineTo(margin+tx*ie*2+tx/2   , margin+ty/2);
+        context.arc   (margin+tx*ie*2+tx     , margin+ty/2, tx/2, Math.PI, 0, true);
+        context.lineTo(margin+tx*ie*2+tx+tx/2, margin);
         context.stroke();
         //draw arrow
         context.beginPath();
-        context.moveTo(margin+tx*ie*2+tx+tx/2     , margin+by     );
-        context.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+by-tx/2);
-        context.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+by-tx/2);
+        context.moveTo(margin+tx*ie*2+tx+tx/2     , margin     );
+        context.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+tx/2);
+        context.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+tx/2);
         context.closePath();
         context.fill();
       }else{
-        //connect bottom and top by line
+        //pass band
+        //connect line from top ports ie * 2 to bottom ie * 2 + 1
         context.beginPath();
         context.moveTo(margin+tx*ie*2+tx/2, margin+by);
         context.lineTo(margin+tx*ie*2+tx/2, margin);
         context.stroke();
-        //draw arrow
+        //draw arrow to bottom
         context.beginPath();
-        context.moveTo(margin+tx*ie*2+tx/2     , margin     );
-        context.lineTo(margin+tx*ie*2+tx/2+tx/4, margin+tx/2);
-        context.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+tx/2);
+        context.moveTo(margin+tx*ie*2+tx/2     , margin+by     );
+        context.lineTo(margin+tx*ie*2+tx/2+tx/4, margin+by-tx/2);
+        context.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+by-tx/2);
         context.closePath();
         context.fill();
       }
+      //divisor
       if(div[ie]==selp){
-        //connect top port ie * 2+1 to left port ie * 2 + 1 by rounded L-shape linea
+        //dividing enable
+        //connect bottom port ie * 2+1 to left port ie * 2 + 1 by rounded L-shape line
         context.beginPath();
-        context.moveTo(margin+tx*ie*2+tx+tx/2, margin);
-        context.lineTo(margin+tx*ie*2+tx+tx/2, margin+by-ty*(ie*2+1)-ty);
-        context.arc   (margin+tx*ie*2+tx     , margin+by-ty*(ie*2+1)-ty, tx/2, 0, Math.PI/2, false);
+        context.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
+        context.lineTo(margin+tx*ie*2+tx+tx/2, margin+by-ty*(ie*2+1));
+        context.arc   (margin+tx*ie*2+tx     , margin+by-ty*(ie*2+1), tx/2, 0, -Math.PI/2, true);
         context.lineTo(margin                , margin+by-ty*(ie*2+1)-ty/2);
         context.stroke();
         //draw arrow
@@ -134,8 +139,8 @@ const draw = function() {
         context.lineTo(margin+tx/2           , margin+by-ty*(ie*2+1)-ty/2+tx/4);
         context.closePath();
         context.fill();
-
       }else{
+        //dividing disable
         //connect right port ie * 2 + 1 to left port ie * 2 + 1 by line
         context.beginPath();
         context.moveTo(margin+bx, margin+by-ty*(ie*2+1)-ty/2);
@@ -151,7 +156,108 @@ const draw = function() {
       }
     }//for(ie)
   }else{//if(isNaN)
-    if(kind == 'bottom'){
+    if(kind == 'start'){
+      //connect left port 0 to right port 0 by line
+      context.beginPath();
+      context.moveTo(margin   , margin+by-ty/2);
+      context.lineTo(margin+bx, margin+by-ty/2);
+      context.stroke();
+      //draw arrow
+      context.beginPath();
+      context.moveTo(margin+bx     , margin+by-ty/2     );
+      context.lineTo(margin+bx-tx/2, margin+by-ty/2+tx/4);
+      context.lineTo(margin+bx-tx/2, margin+by-ty/2-tx/4);
+      context.closePath();
+      context.fill();
+    }else if(kind == 'diag'){
+      //connect diagonal line from top right edge to bottom left edge
+      context.beginPath();
+      context.moveTo(margin+bx, margin);
+      context.lineTo(margin   , margin+by);
+      context.stroke();
+      //draw diagonal arrow
+      context.beginPath();
+      context.moveTo(margin     , margin+by     );
+      context.lineTo(margin+tx/2, margin+by     );
+      context.lineTo(margin     , margin+by-ty/2);
+      context.closePath();
+      context.fill();
+      //connect bottom ports 1 to diagonal line
+      context.beginPath();
+      context.moveTo(margin+tx*1+tx/2, margin+by);
+      context.lineTo(margin+tx*1+tx/2, margin+by-ty-ty/2);
+      context.stroke();
+      //draw arrow
+      context.beginPath();
+      context.moveTo(margin+tx*1+tx/2     , margin+by-ty-ty/2     );
+      context.lineTo(margin+tx*1+tx/2+tx/4, margin+by-ty-ty/2+ty/2);
+      context.lineTo(margin+tx*1+tx/2-tx/4, margin+by-ty-ty/2+ty/2);
+      context.closePath();
+      context.fill();
+      context.beginPath();
+      context.moveTo(margin+tx*1+tx/2     , margin+by-ty-ty/2);
+      context.lineTo(margin+tx*1+tx/2+tx/2, margin+by-ty-ty/2);
+      context.lineTo(margin+tx*1+tx/2     , margin+by-ty-ty/2-ty/2);
+      context.closePath();
+      context.fill();
+      for(let ie=0; ie<neq; ie++){
+        //condition-incrementer
+        if(ie>0){
+          //connect arc from bottom ports ie * 2 + 1 to bottom ports ie * 2 + 2
+          context.beginPath();
+          context.moveTo(margin+tx*ie*2+tx/2   , margin+by);
+          context.lineTo(margin+tx*ie*2+tx/2   , margin+by-ty/2);
+          context.arc   (margin+tx*ie*2+tx     , margin+by-ty/2, tx/2, Math.PI, 0, false);
+          context.lineTo(margin+tx*ie*2+tx+tx/2, margin+by);
+          context.stroke();
+          //draw arrow
+          context.beginPath();
+          context.moveTo(margin+tx*ie*2+tx+tx/2     , margin+by     );
+          context.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+by-tx/2);
+          context.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+by-tx/2);
+          context.closePath();
+          context.fill();
+        }
+        //connect L shape lines from right ports ie * 2 +1 to top ports ie * 2 + 1
+        if(ie>0){
+          context.beginPath();
+          context.moveTo(margin+bx, margin+by-ty*ie*2-ty/2);
+          context.lineTo(margin+tx*ie*2+tx, margin+by-ty*ie*2-ty/2);
+          context.arc   (margin+tx*ie*2+tx, margin+by-ty*ie*2-ty, tx/2, Math.PI/2, Math.PI, false);
+          context.lineTo(margin+tx*ie*2+tx/2, margin);
+          context.stroke();
+          //draw up arrow
+          context.beginPath();
+          context.moveTo(margin+tx*ie*2+tx/2,      margin     );
+          context.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+tx/2);
+          context.lineTo(margin+tx*ie*2+tx/2+tx/4, margin+tx/2);
+          context.closePath();
+          context.fill();
+        }
+        //connect L shape lines from left ports ie * 2 to bottom ports 0
+        context.beginPath();
+        context.moveTo(margin     , margin+by-ty*ie*2-ty/2);
+        context.lineTo(margin+tx/2, margin+by-ty*ie*2-ty/2);
+        context.lineTo(margin+tx/2, margin+by);
+        context.stroke();
+        if(ie<neq-1){
+          //draw down arrow
+          context.beginPath();
+          context.moveTo(margin+tx/2,      margin+by-ty/2-ty*ie*2     );
+          context.lineTo(margin+tx/2-tx/4, margin+by-ty/2-ty*ie*2-ty/2);
+          context.lineTo(margin+tx/2+tx/4, margin+by-ty/2-ty*ie*2-ty/2);
+          context.closePath();
+          context.fill();
+          //draw right arrow
+          context.beginPath();
+          context.moveTo(margin+tx/2,      margin+by-ty/2-ty*ie*2);
+          context.lineTo(margin+tx/2-tx/2, margin+by-ty/2-ty*ie*2-tx/4);
+          context.lineTo(margin+tx/2-tx/2, margin+by-ty/2-ty*ie*2+tx/4);
+          context.closePath();
+          context.fill();
+        }
+      }
+    }else if(kind == 'bottom'){
       for(let ie=0; ie<neq-1; ie++){
         //connect top ports ie * 2 + 1 and ie * 2 + 2 by arc
         context.beginPath();
@@ -167,6 +273,28 @@ const draw = function() {
         context.lineTo(margin+tx*(ie*2+1)+tx+tx/2-tx/4, margin+tx/2);
         context.closePath();
         context.fill();
+      }
+      //connect bottom ports 0 and top port 0 by line
+      context.beginPath();
+      context.moveTo(margin+tx/2, margin+by);
+      context.lineTo(margin+tx/2, margin);
+      context.stroke();
+      //draw arrow
+      context.beginPath();
+      context.moveTo(margin+tx/2     , margin     );
+      context.lineTo(margin+tx/2+tx/4, margin+tx/2);
+      context.lineTo(margin+tx/2-tx/4, margin+tx/2);
+      context.closePath();
+      context.fill();
+    }else if(kind == 'amp'){
+      for(let ie=0; ie<neq; ie++){
+        //connect bottom ports ie * 2 and right port neq - ie * 2 by L-shape line
+        context.beginPath();
+        context.moveTo(margin+tx*ie*2+tx/2, margin+by);
+        context.lineTo(margin+tx*ie*2+tx/2, margin+by-ty*ie*2-ty/2);
+        context.lineTo(margin+bx, margin+by-ty*ie*2-ty/2);
+        context.stroke();
+
       }
     }
 
