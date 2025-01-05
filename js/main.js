@@ -274,30 +274,80 @@ const draw = function() {
         context.closePath();
         context.fill();
       }
-      //connect bottom ports 0 and top port 0 by line
-      context.beginPath();
-      context.moveTo(margin+tx/2, margin+by);
-      context.lineTo(margin+tx/2, margin);
-      context.stroke();
-      //draw arrow
-      context.beginPath();
-      context.moveTo(margin+tx/2     , margin     );
-      context.lineTo(margin+tx/2+tx/4, margin+tx/2);
-      context.lineTo(margin+tx/2-tx/4, margin+tx/2);
-      context.closePath();
-      context.fill();
     }else if(kind == 'amp'){
       for(let ie=0; ie<neq; ie++){
         //connect bottom ports ie * 2 and right port neq - ie * 2 by L-shape line
         context.beginPath();
         context.moveTo(margin+tx*ie*2+tx/2, margin+by);
-        context.lineTo(margin+tx*ie*2+tx/2, margin+by-ty*ie*2-ty/2);
-        context.lineTo(margin+bx, margin+by-ty*ie*2-ty/2);
+        context.lineTo(margin+tx*ie*2+tx/2, margin+by-ty*ie*2);
+        context.arc   (margin+tx*ie*2+tx  , margin+by-ty*ie*2, tx/2, Math.PI, -Math.PI/2, false);
+        context.lineTo(margin+bx          , margin+by-ty*ie*2-ty/2);
+        context.stroke();
+        //round corner
+        context.beginPath();
+        context.moveTo(margin+tx*ie*2+tx/2, margin+by-ty*ie*2);
         context.stroke();
 
+        //draw arrow
+        context.beginPath();
+        context.moveTo(margin+bx, margin+by-ty*ie*2-ty/2     );
+        context.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2-tx/4);
+        context.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2+tx/4);
+        context.closePath();
+        context.fill();
+      }
+    }else if(kind == 'thru'){
+      for(let ie=0; ie<neq; ie++){
+        //connect top ports ie * 2 to bottom ports ie * 2
+        context.beginPath();
+        context.moveTo(margin+tx*ie*2+tx/2, margin+by);
+        context.lineTo(margin+tx*ie*2+tx/2, margin);
+        context.stroke();
+        //draw arrow
+        context.beginPath();
+        context.moveTo(margin+tx*ie*2+tx/2     , margin+by     );
+        context.lineTo(margin+tx*ie*2+tx/2+tx/4, margin+by-tx/2);
+        context.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+by-tx/2);
+        context.closePath();
+        context.fill();
+        //connect bottom ports ie * 2 + 1 to right ports ie * 2 + 1
+        context.beginPath();
+        context.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
+        context.lineTo(margin+tx*ie*2+tx+tx/2, margin);
+        context.stroke();
+        //draw arrow
+        context.beginPath();
+        context.moveTo(margin+tx*ie*2+tx+tx/2     , margin     );
+        context.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+tx/2);
+        context.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+tx/2);
+        context.closePath();
+        context.fill();
+        //connect right ports ie * 2 to left ports ie * 2
+        context.beginPath();
+        context.moveTo(margin+bx, margin+by-ty*ie*2-ty/2);
+        context.lineTo(margin   , margin+by-ty*ie*2-ty/2);
+        context.stroke();
+        //draw arrow
+        context.beginPath();
+        context.moveTo(margin     , margin+by-ty*ie*2-ty/2     );
+        context.lineTo(margin+tx/2, margin+by-ty*ie*2-ty/2-tx/4);
+        context.lineTo(margin+tx/2, margin+by-ty*ie*2-ty/2+tx/4);
+        context.closePath();
+        context.fill();
+        //connect left ports ie * 2 + 1 to right ports ie * 2 + 1
+        context.beginPath();
+        context.moveTo(margin+bx, margin+by-ty*ie*2-ty-ty/2);
+        context.lineTo(margin   , margin+by-ty*ie*2-ty-ty/2);
+        context.stroke();
+        //draw arrow
+        context.beginPath();
+        context.moveTo(margin+bx     , margin+by-ty*ie*2-ty-ty/2     );
+        context.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty-ty/2-tx/4);
+        context.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty-ty/2+tx/4);
+        context.closePath();
+        context.fill();
       }
     }
-
   }//if(isNaN)
 }
 
