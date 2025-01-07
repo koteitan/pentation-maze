@@ -7,24 +7,24 @@
 </head>
 <body>
     <h1>pentamaze</h1>
-    <canvas id="myCanvas" width="400" height="400" style="border:1px solid #000;"></canvas>
+    <canvas id="canout" width="400" height="400" style="border:1px solid #000;"></canvas><br>
+    <canvas id="canin"  width="400" height="400" style="border:1px solid #000;"></canvas>
     <br>
     <form id="form0">
-      <button id="draw">draw</button>
       <button id="save">save png</button><br>
-      <input type="radio" name="kind" value="0" id="kinds">2
-      <input type="radio" name="kind" value="1" id="kinds">3
-      <input type="radio" name="kind" value="2" id="kinds">5
-      <input type="radio" name="kind" value="3" id="kinds">7
-      <input type="radio" name="kind" value="4" id="kinds">11
-      <input type="radio" name="kind" value="5" id="kinds">13
-      <input type="radio" name="kind" value="6" id="kinds">17
-      <input type="radio" name="kind" value="7" id="kinds">19<br>
-      <input type="radio" name="kind" value="start"  id="kinds">starter
-      <input type="radio" name="kind" value="diag"   id="kinds">diag
-      <input type="radio" name="kind" value="amp"    id="kinds" checked>amplifier
-      <input type="radio" name="kind" value="bottom" id="kinds">bottom
-      <input type="radio" name="kind" value="thru"   id="kinds">thru
+      <input type="radio" name="kinds" value="0" checked>2
+      <input type="radio" name="kinds" value="1">3
+      <input type="radio" name="kinds" value="2">5
+      <input type="radio" name="kinds" value="3">7
+      <input type="radio" name="kinds" value="4">11
+      <input type="radio" name="kinds" value="5">13
+      <input type="radio" name="kinds" value="6">17
+      <input type="radio" name="kinds" value="7">19<br>
+      <input type="radio" name="kinds" value="start" >starter
+      <input type="radio" name="kinds" value="diag"  >diag
+      <input type="radio" name="kinds" value="amp"   >amplifier
+      <input type="radio" name="kinds" value="bottom">bottom
+      <input type="radio" name="kinds" value="thru"  >thru
     </form>
     <script src="main.js"></script>
 </body>
