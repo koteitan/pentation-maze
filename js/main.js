@@ -18,8 +18,10 @@ const blockers = [ //blockers[ie][ip]
    [0  , 0  , 0  , 0  , 1  ,  0  ,  0 ,  0],
    [0  , 0  , 0  , 0  , 0  ,  0  ,  0 ,  1]
 ];
-const kind2name  = ['2'  , '3'     , '5'     , '7'    , '11'  , '13'    , '17'   , '19'  , 'diag' , 'amp'    , 'bottom', 'start', 'start' , 'thru'];
-const kind2color = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'brown', 'pink', 'cyan' , 'magenta', 'lime'  , 'teal' , 'indigo', 'white'];
+const kind2name  = ['2'  , '3'     , '5'     , '7'    , '11'  , '13'    , '17'   , '19'  , 'diag' , 'amp'    , 'bottom', 'start', 'thru'];
+//const kind2color = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'brown', 'pink', 'cyan' , 'magenta', 'lime'  , 'teal' , 'indigo', 'white'];
+//don't use same color. please use rainbow order, don't use teal
+const kind2color = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'brown', 'pink', 'cyan' , 'magenta', 'lime'  , 'darkblue', 'indigo', 'white'];
   
 const divs  =[ -1,  0,  1,  0,  2,  1,  2,  3, 4, 1, 5, 2, 6, 3];
 const amps  =[  0,  9, 25, 13, 49, 17, 19,121, 1, 3, 1, 5, 1, 7];
@@ -52,13 +54,14 @@ form0.save.addEventListener('click', () => {
 });
 
 // Add event listener to the button
+const margin_in = 20;
 const drawin = function() {
   // settings
+  const margin = margin_in;
   const ctx = ctxin;
   const wx     = canin.width;
   const wy     = canin.height;
   const ntile  = neq*2;
-  const margin = 20;
   let   tx     = Math.floor((wx-2*margin)/ntile);
   let   ty     = Math.floor((wy-2*margin)/ntile);
   if(tx>ty){
@@ -358,15 +361,19 @@ const drawin = function() {
     }
   }//if(isNaN)
 }
+
+const nblockmin = 10;
+const nblockmax = 1000;
+const margin_out = 20;
 let cx = 0; //current block x
 let cy = 0; //current block y
+let nblock = 10;
 const drawout = function() {
   // settings
+  const margin = margin_out;
   const ctx = ctxout;
   const wx     = canout.width;
   const wy     = canout.height;
-  const nblock = 10;
-  const margin = 20;
   let   bx     = Math.floor((wx-2*margin)/nblock);
   let   by     = Math.floor((wy-2*margin)/nblock);
   if(bx>by){ bx = by; }else{ by = bx; }
@@ -426,10 +433,17 @@ const drawout = function() {
         }
       }
       let ikind = nprime;
+      //starter
+      color = kind2color[ikind++];
+      if(px==8 && py==0){
+        drawblock(margin+bx*x, margin+sy-by*y-by, bx, by, color);
+        continue;
+      }
       //diag
       color = kind2color[ikind++];
-      if(px==py){
+      if(px>=0 && py>=0 && px==py){
         drawblock(margin+bx*x, margin+sy-by*y-by, bx, by, color);
+        continue;
       }
       //amp
       color = kind2color[ikind++];
@@ -440,16 +454,13 @@ const drawout = function() {
             drawblock(margin+bx*x, margin+sy-by*y-by, bx, by, color);
           }
         }
+        continue;
       }
       //bottom
       color = kind2color[ikind++];
-      if(py==0){
+      if(px>0 && py==0){
         drawblock(margin+bx*x, margin+sy-by*y-by, bx, by, color);
-      }
-      //starter
-      color = kind2color[ikind++];
-      if(px==8 && py==0){
-        drawblock(margin+bx*x, margin+sy-by*y-by, bx, by, color);
+        continue;
       }
       //thru
     }
@@ -473,6 +484,73 @@ const resize = () => {
 }
 window.addEventListener('resize', resize);
 
+// mouse wheel event to zoom in out
+canout.addEventListener('wheel', (e) => {
+  //change nblock
+  if(e.deltaY < 0){
+    nblock -= 1;
+    if(nblock > nblockmax){
+      nbrlock = nblockmax;
+    }
+  }else{
+    nblock += 1;
+    if(nblock < nblockmin){
+      nblock = nblockmin;
+    }
+  }
+  drawout();
+});
+// mouse drag and drop to move by cx, cy
+let dragging = false;
+let downx = 0;
+let downy = 0;
+let downcx = cx;
+let downcy = cy;
+canout.addEventListener('mousedown', (e) => {
+  const wx = canout.width;
+  const wy = canout.height;
+  //dragx = convert browserx to canbas x pixcel
+  downx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) * wx / canout.clientWidth);
+  downy = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) * wy / canout.clientHeight);
+  downcx = cx;
+  downcy = cy;
+  //debug out
+  if(true){
+    const margin = margin_out;
+    let   bx  = Math.floor((wx-2*margin)/nblock);
+    let   by  = Math.floor((wy-2*margin)/nblock);
+    const dbx = Math.floor((downx - margin) / bx);
+    const dby = Math.floor((downy - margin) / by);
+    console.log("dbx = " + dbx + ", dby = " + dby);
+  }
+  dragging = true;
+});
+canout.addEventListener('mousemove', (e) => {
+  if(dragging){
+    const margin = margin_out;
+    const wx = canout.width;
+    const wy = canout.height;
+    let   bx = Math.floor((wx-2*margin)/nblock);
+    let   by = Math.floor((wy-2*margin)/nblock);
 
-
+    const mx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) * canout.width / canout.clientWidth);
+    const my = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) * canout.height / canout.clientHeight);
+    
+    const dbx = Math.floor((downx - margin) / bx);
+    const dby = Math.floor((downy - margin) / by);
+    const mbx = Math.floor((mx - margin) / bx);
+    const mby = Math.floor((my - margin) / by);
+    console.log("mbx = " + mbx + ", mby = " + mby + ", dbx = " + dbx + ", dby = " + dby + ", mbx-dbx = " + (mbx-dbx) + ", mby-dby = " + (mby-dby));
+    cx = downcx - (mbx - dbx);
+    cy = downcy - (mby - dby);
+    drawout();
+  }
+});
+canout.addEventListener('mouseup', (e) => {
+  dragging = false;
+});
+// how can I dragging = false when mouse out of canvas?
+canout.addEventListener('mouseout', (e) => {
+  dragging = false;
+});
 
