@@ -362,8 +362,6 @@ const drawin = function() {
   }//if(isNaN)
 }
 
-const nblockmin = 10;
-const nblockmax = 1000;
 const margin_out = 20;
 let cx = 0; //current block x
 let cy = 0; //current block y
@@ -485,20 +483,23 @@ const resize = () => {
 window.addEventListener('resize', resize);
 
 // mouse wheel event to zoom in out
+const nblockmin = 2;
+const nblockmax = 70;
 canout.addEventListener('wheel', (e) => {
   //change nblock
   if(e.deltaY < 0){
     nblock -= 1;
-    if(nblock > nblockmax){
-      nbrlock = nblockmax;
-    }
-  }else{
+  }else if(e.deltaY > 0){
     nblock += 1;
-    if(nblock < nblockmin){
-      nblock = nblockmin;
-    }
   }
+  if(nblock < nblockmin){
+    nblock = nblockmin;
+  }else if(nblock > nblockmax){
+    nblock = nblockmax;
+  }
+
   drawout();
+  //console.log("nblock = " + nblock);
 });
 // mouse drag and drop to move by cx, cy
 let dragging = false;
@@ -515,7 +516,7 @@ canout.addEventListener('mousedown', (e) => {
   downcx = cx;
   downcy = cy;
   //debug out
-  if(true){
+  if(false){
     const margin = margin_out;
     let   bx  = Math.floor((wx-2*margin)/nblock);
     let   by  = Math.floor((wy-2*margin)/nblock);
@@ -540,7 +541,7 @@ canout.addEventListener('mousemove', (e) => {
     const dby = Math.floor((downy - margin) / by);
     const mbx = Math.floor((mx - margin) / bx);
     const mby = Math.floor((my - margin) / by);
-    console.log("mbx = " + mbx + ", mby = " + mby + ", dbx = " + dbx + ", dby = " + dby + ", mbx-dbx = " + (mbx-dbx) + ", mby-dby = " + (mby-dby));
+    //console.log("mbx = " + mbx + ", mby = " + mby + ", dbx = " + dbx + ", dby = " + dby + ", mbx-dbx = " + (mbx-dbx) + ", mby-dby = " + (mby-dby));
     cx = downcx - (mbx - dbx);
     cy = downcy - (mby - dby);
     drawout();
