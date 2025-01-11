@@ -362,18 +362,42 @@ const drawin = function() {
   }//if(isNaN)
 }
 
+function findfontsize(ctx, text, bx, by) {
+    let minFontSize = 1;
+    let maxFontSize = 100; // 大きな値を仮定
+    let bestFontSize = minFontSize;
+
+    while (minFontSize <= maxFontSize) {
+        const fontSize = Math.floor((minFontSize + maxFontSize) / 2);
+        ctx.font = `${fontSize}px Arial`; // フォントサイズを設定
+        // 文字列の幅と高さを測定
+        const metrics = ctx.measureText(text);
+        const width = metrics.width;
+        const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+        if (width <= bx && height <= by) {
+            bestFontSize = fontSize; // 現在のフォントサイズが収まる場合は更新
+            minFontSize = fontSize + 1;
+        } else {
+            maxFontSize = fontSize - 1; // 超えた場合はフォントサイズを縮小
+        }
+    }
+    return bestFontSize;
+}
+
 const margin_out = 20;
 let cx = 0; //current block x
 let cy = 0; //current block y
 let nblock = 10;
 const drawout = function() {
   // settings
-  const margin = margin_out;
   const ctx = ctxout;
   const wx     = canout.width;
   const wy     = canout.height;
-  let   bx     = Math.floor((wx-2*margin)/nblock);
-  let   by     = Math.floor((wy-2*margin)/nblock);
+  let   bx     = Math.floor((wx-2*margin_out)/(nblock+1));
+  let   by     = Math.floor((wy-2*margin_out)/(nblock+1));
+  mgnx = margin_out + bx;
+  mgny = margin_out;
   if(bx>by){ bx = by; }else{ by = bx; }
   const sx     = bx*nblock;
   const sy     = by*nblock;
@@ -384,30 +408,42 @@ const drawout = function() {
   
   //draw a screen
   ctx.strokeStyle = 'black';
-  ctx.strokeRect(margin, margin, sx, sy);
+  ctx.strokeRect(mgnx, mgny, sx, sy);
+
   //draw block grid
   ctx.strokeStyle = 'gray';
   for(let i=1; i<nblock; i++){
     ctx.beginPath();
-    ctx.moveTo(margin+bx*i, margin);
-    ctx.lineTo(margin+bx*i, margin+sy);
+    ctx.moveTo(mgnx+bx*i, mgny);
+    ctx.lineTo(mgnx+bx*i, mgny+sy);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(margin, margin+by*i);
-    ctx.lineTo(margin+sx, margin+by*i);
+    ctx.moveTo(mgnx, mgny+by*i);
+    ctx.lineTo(mgnx+sx, mgny+by*i);
     ctx.stroke();
   }
   //draw axes
-  let fontsize = Math.floor(margin/1.5);
+  const text = Math.max(Math.abs(cx), Math.abs(cx+nblock-1)).toString();
+  const fmgnx = 2;
+  const fmgny = 2;
+  let fontsize = findfontsize(ctx, text, bx-fmgnx*2, by-fmgny*2)*0.8;
+  const metrics = ctx.measureText(text);
+  const strx = metrics.width;
+  const strya = metrics.actualBoundingBoxAscent;
+  const stryd = metrics.actualBoundingBoxDescent;
+  const stry = strya + stryd;
   ctx.font = fontsize + 'px Arial';
-  ctx.textAlign    = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.textAlign    = 'right';
+  ctx.textBaseline = 'top';
   ctx.fillStyle    = 'black';
   for(let i=0; i<nblock; i++){
     //x axis at bottom
-    ctx.fillText(i+cx, margin+bx*i+fontsize, margin+sy+fontsize);
+    ctx.fillText(i+cx, -fmgnx+mgnx+bx*i+bx     ,fmgny+mgny+sy);
+    //ctx.strokeRect    (mgnx+bx*i+bx-strx, mgny+sy, strx, strya+stryd);
+
     //y axis at left, flip ud
-    ctx.fillText(i+cy, margin-fontsize, margin+sy-by*i-fontsize);
+    ctx.fillText(i+cy, -fmgnx+mgnx     , fmgny+mgny+sy-by*i-by);
+    //ctx.strokeRect    (mgnx-strx, mgny+sy-by*i-by, strx, stry);
   }
   //draw blocks
   const drawblock = (x, y, bx, by, color) => {
@@ -426,7 +462,7 @@ const drawout = function() {
         for(let ip=0; ip<nprime; ip++){
           // fill color by prime when py*prime = px
           if(py*primes[ip] == px){
-            drawblock(margin+bx*x, margin+sy-by*y-by, bx, by, kind2color[ip]);
+            drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, kind2color[ip]);
           }
         }
       }
@@ -434,13 +470,13 @@ const drawout = function() {
       //starter
       color = kind2color[ikind++];
       if(px==8 && py==0){
-        drawblock(margin+bx*x, margin+sy-by*y-by, bx, by, color);
+        drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
         continue;
       }
       //diag
       color = kind2color[ikind++];
       if(px>=0 && py>=0 && px==py){
-        drawblock(margin+bx*x, margin+sy-by*y-by, bx, by, color);
+        drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
         continue;
       }
       //amp
@@ -449,7 +485,7 @@ const drawout = function() {
         for(let a=0; a<amps.length; a++){
           // fill color by amp when py = px * amp
           if(py == px * amps[a] && amps[a] > 1){
-            drawblock(margin+bx*x, margin+sy-by*y-by, bx, by, color);
+            drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
           }
         }
         continue;
@@ -457,7 +493,7 @@ const drawout = function() {
       //bottom
       color = kind2color[ikind++];
       if(px>0 && py==0){
-        drawblock(margin+bx*x, margin+sy-by*y-by, bx, by, color);
+        drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
         continue;
       }
       //thru
@@ -517,30 +553,32 @@ canout.addEventListener('mousedown', (e) => {
   downcy = cy;
   //debug out
   if(false){
-    const margin = margin_out;
-    let   bx  = Math.floor((wx-2*margin)/nblock);
-    let   by  = Math.floor((wy-2*margin)/nblock);
-    const dbx = Math.floor((downx - margin) / bx);
-    const dby = Math.floor((downy - margin) / by);
+    const bx   = Math.floor((wx-2*margin_out)/(nblock+1));
+    const by   = Math.floor((wy-2*margin_out)/(nblock+1));
+    const mgnx = margin_out + bx;
+    const mgny = margin_out;
+    const dbx = Math.floor((downx - mgnx) / bx);
+    const dby = Math.floor((downy - mgny) / by);
     console.log("dbx = " + dbx + ", dby = " + dby);
   }
   dragging = true;
 });
 canout.addEventListener('mousemove', (e) => {
   if(dragging){
-    const margin = margin_out;
     const wx = canout.width;
     const wy = canout.height;
-    let   bx = Math.floor((wx-2*margin)/nblock);
-    let   by = Math.floor((wy-2*margin)/nblock);
+    const bx   = Math.floor((wx-2*margin_out)/(nblock+1));
+    const by   = Math.floor((wy-2*margin_out)/(nblock+1));
+    const mgnx = margin_out + bx;
+    const mgny = margin_out;
 
     const mx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) * canout.width / canout.clientWidth);
     const my = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) * canout.height / canout.clientHeight);
     
-    const dbx = Math.floor((downx - margin) / bx);
-    const dby = Math.floor((downy - margin) / by);
-    const mbx = Math.floor((mx - margin) / bx);
-    const mby = Math.floor((my - margin) / by);
+    const dbx = Math.floor((downx - mgnx) / bx);
+    const dby = Math.floor((downy - mgny) / by);
+    const mbx = Math.floor((   mx - mgnx) / bx);
+    const mby = Math.floor((   my - mgny) / by);
     //console.log("mbx = " + mbx + ", mby = " + mby + ", dbx = " + dbx + ", dby = " + dby + ", mbx-dbx = " + (mbx-dbx) + ", mby-dby = " + (mby-dby));
     cx = downcx - (mbx - dbx);
     cy = downcy - (mby - dby);
