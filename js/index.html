@@ -1,29 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>pentation maze</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pentamaze</title>
+    <style>
+      .kindtd {
+        width: 100px;
+        text-align: center;
+        border: 1px solid #000;
+      }
+    </style>
 </head>
 <body><form id="form0">
-    <h1>pentamaze</h1>
-    <canvas id="canout" width="400" height="400" style="border:1px solid #000;"></canvas><br>
-    <canvas id="canin"  width="400" height="400" style="border:1px solid #000;"></canvas>
-    <br>
-      <button id="save">save png</button><br>
-      <input type="radio" name="kinds" value="0" checked>2
-      <input type="radio" name="kinds" value="1">3
-      <input type="radio" name="kinds" value="2">5
-      <input type="radio" name="kinds" value="3">7
-      <input type="radio" name="kinds" value="4">11
-      <input type="radio" name="kinds" value="5">13
-      <input type="radio" name="kinds" value="6">17
-      <input type="radio" name="kinds" value="7">19<br>
-      <input type="radio" name="kinds" value="start" >starter
-      <input type="radio" name="kinds" value="diag"  >diag
-      <input type="radio" name="kinds" value="amp"   >amplifier
-      <input type="radio" name="kinds" value="bottom">bottom
-      <input type="radio" name="kinds" value="thru"  >thru
-    <script src="main.js"></script>
+
+<h1>pentation maze</h1>
+<button id="zoomin">zoom in</button>
+<button id="zoomout">zoom out</button> or use mouse wheel<br>
+<canvas id="canout" width="400" height="400" style="border:1px solid #000;"></canvas><br>
+<table>
+  <tr>
+    <td class=kindtd id=kind0><input type="radio" name="kinds" value="0" checked>2</td>
+    <td class=kindtd id=kind1><input type="radio" name="kinds" value="1">3</td>
+    <td class=kindtd id=kind2><input type="radio" name="kinds" value="2">5</td>
+    <td class=kindtd id=kind3><input type="radio" name="kinds" value="3">7</td>
+    <td class=kindtd id=kind4><input type="radio" name="kinds" value="4">11</td>
+  </tr><tr>
+    <td class=kindtd id=kind5><input type="radio" name="kinds" value="5">13</td>
+    <td class=kindtd id=kind6><input type="radio" name="kinds" value="6">17</td>
+    <td class=kindtd id=kind7><input type="radio" name="kinds" value="7">19</td>
+    <td class=kindtd id=kind8><input type="radio" name="kinds" value="start" >starter</td>
+    <td class=kindtd id=kind9><input type="radio" name="kinds" value="diag"  >diag</td>
+  </tr><tr>
+    <td class=kindtd id=kind10><input type="radio" name="kinds" value="amp"   >amplifier</td>
+    <td class=kindtd id=kind11><input type="radio" name="kinds" value="bottom">bottom</td>
+    <td class=kindtd id=kind12><input type="radio" name="kinds" value="thru"  >thru</td>
+  </tr>
+</table><br>
+<canvas id="canin"  width="400" height="400" style="border:1px solid #000;"></canvas>
+<br>
+<button id="save">save png</button>
+<br>
+
+<address id="address">pentation maze: version v0.3+<span id="jsversion"></span><br>
+programmed by <a href='https://twitter.com/koteitan'>koteitan</a> code at <a href='https://github.com/koteitan/pentamaze/'>github</a><br>
+</address>
+<script src="main.js"></script>
 </form></body></html>
 

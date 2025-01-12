@@ -1,3 +1,4 @@
+const jsversion = 'v0.4';
 const neq    = 14; //number of equations
 const nprime =  8; //number of prime numbers
 const nkind  = 13; //number of kinds of blocks
@@ -19,9 +20,6 @@ const blockers = [ //blockers[ie][ip]
    [0  , 0  , 0  , 0  , 0  ,  0  ,  0 ,  1]
 ];
 const kind2name  = ['2'  , '3'     , '5'     , '7'    , '11'  , '13'    , '17'   , '19'  , 'diag' , 'amp'    , 'bottom', 'start', 'thru'];
-//const kind2color = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'brown', 'pink', 'cyan' , 'magenta', 'lime'  , 'teal' , 'indigo', 'white'];
-//don't use same color. please use rainbow order, don't use teal
-const kind2color = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'brown', 'pink', 'cyan' , 'magenta', 'lime'  , 'darkblue', 'indigo', 'white'];
   
 const divs  =[ -1,  0,  1,  0,  2,  1,  2,  3, 4, 1, 5, 2, 6, 3];
 const amps  =[  0,  9, 25, 13, 49, 17, 19,121, 1, 3, 1, 5, 1, 7];
@@ -31,14 +29,63 @@ const canout = document.getElementById('canout');
 const canin  = document.getElementById('canin');
 const ctxout = canout.getContext('2d');
 const ctxin  = canin .getContext('2d');
+let kind2color = [];
 
-// Add event listener to option
-for(let i=0; i<nkind; i++){
-  form0.kinds[i].addEventListener('click', () => {
-    drawin();
-  });
+
+window.onload = function() {
+  document.getElementById('jsversion').textContent = jsversion;
+  //make kind2color
+  if(false){
+    for(let i=0; i<nprime; i++){
+      kind2color.push(real2color(i/nprime));
+    }
+    for(let i=nprime; i<nkind; i++){
+      kind2color.push(real2color((i-nprime)/(nkind-nprime), 0.5, 1));
+    }
+  }
+  if(true){
+    kind2color = [
+      'rgb(255,128,  0)', //orange
+      'rgb(255,255,  0)', //yellow
+      'rgb(  0,255,  0)', //green
+      'rgb(  0,255,255)', //cyan
+      'rgb(  0,128,255)', //sky blue
+      'rgb(  0,  0,255)', //blue
+      'rgb(128,  0,255)', //purple
+      'rgb(255,  0,255)', //magenta
+      'rgb(255,128,128)', //pink
+      'rgb(255,  0,  0)', //red
+      'rgb(128,128,128)', //gray
+      'rgb(192,192,192)', //silver
+      'rgb(255,255,255)', //white
+    ];
+  }
+
+  for(let i=0; i<nkind; i++){
+    document.getElementById('kind'+i).style.backgroundColor = kind2color[i];
+  }
+  for(let i=0; i<nkind; i++){
+    form0.kinds[i].addEventListener('click', function(){
+      drawin();
+    });
+  } 
+  window.addEventListener('resize', resize);
+  resize();
+
 }
-
+const resize = function() {
+  const mgnx = 40;
+  const mgny = 0;
+  const wx =  window.innerWidth  - mgnx;
+  const wy = (window.innerHeight - mgny)/2;
+  const w = Math.min(wx, wy);
+  canin.width  = w;
+  canin.height = w;
+  canout.width  = w;
+  canout.height = w;
+  drawin();
+  drawout();
+}
 
 form0.save.addEventListener('click', () => {
     // Convert canvas content to a data URL (base64-encoded PNG)
@@ -500,28 +547,11 @@ const drawout = function() {
     }
   }
 }
-window.onload = function() {
-  resize();
-}
-const resize = () => {
-  const mgnx = 40;
-  const mgny = 200;
-  const wx =  window.innerWidth  - mgnx;
-  const wy = (window.innerHeight - mgny)/2;
-  const w = Math.min(wx, wy);
-  canin.width  = w;
-  canin.height = w;
-  canout.width  = w;
-  canout.height = w;
-  drawin();
-  drawout();
-}
-window.addEventListener('resize', resize);
-
 // mouse wheel event to zoom in out
 const nblockmin = 2;
 const nblockmax = 70;
 canout.addEventListener('wheel', (e) => {
+  e.preventDefault();
   //change nblock
   if(e.deltaY < 0){
     nblock -= 1;
@@ -592,4 +622,24 @@ canout.addEventListener('mouseup', (e) => {
 canout.addEventListener('mouseout', (e) => {
   dragging = false;
 });
+const real2color = (i, bmin=0, bmax=1) => {
+  let r, g, b;
+  if(i < 1/3){
+    r = +1 -3*i;
+    g = -0 +3*i;
+    b =  0;
+  }else if(i < 2/3){
+    r =  0;
+    g = +2 -3*i;
+    b = -1 +3*i;
+  }else{
+    r = -2 +3*i;
+    g = 0;
+    b = +3 -3*i;
+  }
+  r = (r * (bmax - bmin) + bmin) * 255;
+  g = (g * (bmax - bmin) + bmin) * 255;
+  b = (b * (bmax - bmin) + bmin) * 255;
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
 
