@@ -72,7 +72,7 @@ window.onload = function() {
       'rgb(255,128,  0)', //orange   2
       'rgb(255,255,  0)', //yellow   3
       'rgb(  0,255,  0)', //green    5
-      'rgb(  0,255,255)', //vyan     7
+      'rgb(  0,255,255)', //scryan     7
       'rgb(  0,128,255)', //sky blue 11
       'rgb(  0,  0,255)', //blue     13
       'rgb(128,  0,255)', //purple   17
@@ -96,18 +96,23 @@ const canin  = document.getElementById('canin');
 const ctxout = canout.getContext('2d');
 const ctxin  = canin .getContext('2d');
 let nblock = 10; //number of blocks in a view
-let vx = 0;           //current view x
-let vy = 0;           //current view y
-let cx = 0;           //current cursor x
-let cy = 8;           //current cursor y
-let dragging = false; //mouse dragging flag
-let downx = 0;        //mouse and touch down x
-let downy = 0;        //mouse and touch down y
-let downx2 = 0;       //second touch down x
-let downy2 = 0;       //second touch down y
-let downvx = vx;      //view x when down
-let downvy = vy;      //view y when down
+let scrx   =  0; //current view x
+let scry   =  0; //current view y
+let vx     =  0; //current cursor x = starter
+let vy     =  8; //current cursor y = starter
+let cx     =  0; //current cursor x = starter
+let cy     =  8; //current cursor y = starter
+let cport  =  0; //current cursor port = start port
+let cdirx  = +1; //current cursor port x direction = right
+let cdiry  =  0; //current cursor port y direction = none
+let downx  =  0;         //mouse and touch down x
+let downy  =  0;         //mouse and touch down y
+let downx2 =  0;         //second touch down x
+let downy2 =  0;         //second touch down y
+let downscrx   = scrx;   //view x when down
+let downscry   = scry;   //view y when down
 let downnblock = nblock; //nblock when down
+let dragging = false;    //mouse dragging flag
 //debug print
 const print = function(str){
   document.getElementById('debug').style.display = 'block';
@@ -135,6 +140,7 @@ const drawcanin = function() {
   const bx     = tx*ntile;
   const by     = ty*ntile;
   const kind   = document.querySelector('input[name="kinds"]:checked').value;
+  const iscur  = cx==vx && cy==vy;
   
   //draw a background
   ctx.fillStyle = 'white';
@@ -158,8 +164,15 @@ const drawcanin = function() {
   }
   
   //draw path
-  ctx.strokeStyle = 'blue';
-  ctx.fillStyle   = 'blue';
+  const colorpath = function(v){
+    if(v){
+      ctxin.strokeStyle = 'red';
+      ctxin.fillStyle   = 'red';
+    }else{
+      ctxin.strokeStyle = 'blue';
+      ctxin.fillStyle   = 'blue';
+    }
+  };
   if(isFinite(kind)){
     //draw primes
     const selp   = parseInt(kind);
@@ -167,6 +180,7 @@ const drawcanin = function() {
       //draw filter
       if(blockers[ie][selp] == 1){
         //stop band
+        colorpath(iscur && ie==cport && cdiry==-1);
         //connect top ports ie * 2  and ie * 2 + 1 by arc arrow
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx/2   , margin);
@@ -183,6 +197,7 @@ const drawcanin = function() {
         ctx.fill();
       }else{
         //pass band
+        colorpath(iscur && ie==cport && cdiry==-1);
         //connect line from top ports ie * 2 to bottom ie * 2 + 1
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx/2, margin+by);
@@ -199,6 +214,7 @@ const drawcanin = function() {
       //divisor
       if(divs[ie]==selp){
         //dividing enable
+        colorpath(iscur && ie==cport && cdiry==+1);
         //connect bottom port ie * 2+1 to left port ie * 2 + 1 by rounded L-shape line
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
@@ -215,6 +231,7 @@ const drawcanin = function() {
         ctx.fill();
       }else{
         //dividing disable
+        colorpath(iscur && ie==cport && cdiry==+1);
         //connect right port ie * 2 + 1 to left port ie * 2 + 1 by line
         ctx.beginPath();
         ctx.moveTo(margin+bx, margin+by-ty*(ie*2+1)-ty/2);
@@ -231,6 +248,7 @@ const drawcanin = function() {
     }//for(ie)
   }else{//if(isNaN)
     if(kind == 'start'){
+      colorpath(iscur);
       //connect left port 0 to right port 0 by line
       ctx.beginPath();
       ctx.moveTo(margin   , margin+by-ty/2);
@@ -245,6 +263,7 @@ const drawcanin = function() {
       ctx.fill();
     }else if(kind == 'diag'){
       //connect diagonal line from top right edge to bottom left edge
+      colorpath(iscur && cdirx==-1 && cdiry==-1);
       ctx.beginPath();
       ctx.moveTo(margin+bx, margin);
       ctx.lineTo(margin   , margin+by);
@@ -257,6 +276,7 @@ const drawcanin = function() {
       ctx.closePath();
       ctx.fill();
       //connect bottom ports 1 to diagonal line
+      colorpath(iscur && cport==1 && cdiry==+1);
       ctx.beginPath();
       ctx.moveTo(margin+tx*1+tx/2, margin+by);
       ctx.lineTo(margin+tx*1+tx/2, margin+by-ty-ty/2);
@@ -278,6 +298,7 @@ const drawcanin = function() {
         //condition-incrementer
         if(ie>0){
           //connect arc from bottom ports ie * 2 + 1 to bottom ports ie * 2 + 2
+          colorpath(iscur && ie==cport && cdiry==+1);
           ctx.beginPath();
           ctx.moveTo(margin+tx*ie*2+tx/2   , margin+by);
           ctx.lineTo(margin+tx*ie*2+tx/2   , margin+by-ty/2);
@@ -294,6 +315,7 @@ const drawcanin = function() {
         }
         //connect L shape lines from right ports ie * 2 +1 to top ports ie * 2 + 1
         if(ie>0){
+          colorpath(iscur && ie==cport && cdirx==-1);
           ctx.beginPath();
           ctx.moveTo(margin+bx, margin+by-ty*ie*2-ty/2);
           ctx.lineTo(margin+tx*ie*2+tx, margin+by-ty*ie*2-ty/2);
@@ -309,6 +331,7 @@ const drawcanin = function() {
           ctx.fill();
         }
         //connect L shape lines from left ports ie * 2 to bottom ports 0
+        colorpath(iscur && ie==cport && cdirx==+1);
         ctx.beginPath();
         ctx.moveTo(margin     , margin+by-ty*ie*2-ty/2);
         ctx.lineTo(margin+tx/2, margin+by-ty*ie*2-ty/2);
@@ -330,10 +353,11 @@ const drawcanin = function() {
           ctx.closePath();
           ctx.fill();
         }
-      }
+      }//for(ie)
     }else if(kind == 'bottom'){
       for(let ie=0; ie<neq-1; ie++){
         //connect top ports ie * 2 + 1 and ie * 2 + 2 by arc
+        colorpath(iscur && ie==cport && cdiry==-1);
         ctx.beginPath();
         ctx.moveTo(margin+tx*(ie*2+1)+tx/2   , margin);
         ctx.lineTo(margin+tx*(ie*2+1)+tx/2   , margin+ty/2);
@@ -351,6 +375,7 @@ const drawcanin = function() {
     }else if(kind == 'amp'){
       for(let ie=0; ie<neq; ie++){
         //connect bottom ports ie * 2 and right port neq - ie * 2 by L-shape line
+        colorpath(iscur && ie==cport && cdiry==+1);
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx/2, margin+by);
         ctx.lineTo(margin+tx*ie*2+tx/2, margin+by-ty*ie*2);
@@ -361,7 +386,6 @@ const drawcanin = function() {
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx/2, margin+by-ty*ie*2);
         ctx.stroke();
-
         //draw arrow
         ctx.beginPath();
         ctx.moveTo(margin+bx, margin+by-ty*ie*2-ty/2     );
@@ -373,6 +397,7 @@ const drawcanin = function() {
     }else if(kind == 'thru'){
       for(let ie=0; ie<neq; ie++){
         //connect top ports ie * 2 to bottom ports ie * 2
+        colorpath(iscur && ie==cport && cdiry==-1);
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx/2, margin+by);
         ctx.lineTo(margin+tx*ie*2+tx/2, margin);
@@ -385,6 +410,7 @@ const drawcanin = function() {
         ctx.closePath();
         ctx.fill();
         //connect bottom ports ie * 2 + 1 to right ports ie * 2 + 1
+        colorpath(iscur && ie==cport && cdiry==+1);
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
         ctx.lineTo(margin+tx*ie*2+tx+tx/2, margin);
@@ -397,6 +423,7 @@ const drawcanin = function() {
         ctx.closePath();
         ctx.fill();
         //connect right ports ie * 2 to left ports ie * 2
+        colorpath(iscur && ie==cport && cdirx==+1);
         ctx.beginPath();
         ctx.moveTo(margin+bx, margin+by-ty*ie*2-ty/2);
         ctx.lineTo(margin   , margin+by-ty*ie*2-ty/2);
@@ -409,6 +436,7 @@ const drawcanin = function() {
         ctx.closePath();
         ctx.fill();
         //connect left ports ie * 2 + 1 to right ports ie * 2 + 1
+        colorpath(iscur && ie==cport && cdirx==-1);
         ctx.beginPath();
         ctx.moveTo(margin+bx, margin+by-ty*ie*2-ty-ty/2);
         ctx.lineTo(margin   , margin+by-ty*ie*2-ty-ty/2);
@@ -459,7 +487,7 @@ const drawcanout = function() {
     ctx.stroke();
   }
   //draw axes
-  const text = Math.max(Math.abs(vx), Math.abs(vx+nblock-1)).toString();
+  const text = Math.max(Math.abs(scrx), Math.abs(scrx+nblock-1)).toString();
   const fmgnx = 2;
   const fmgny = 2;
   let fontsize = findfontsize(ctx, text, bx-fmgnx*2, by-fmgny*2)*0.8;
@@ -474,11 +502,11 @@ const drawcanout = function() {
   ctx.fillStyle    = 'black';
   for(let i=0; i<nblock; i++){
     //x axis at bottom
-    ctx.fillText(i+vx, -fmgnx+mgnx+bx*i+bx     ,fmgny+mgny+sy);
+    ctx.fillText(i+scrx, -fmgnx+mgnx+bx*i+bx     ,fmgny+mgny+sy);
     //ctx.strokeRect    (mgnx+bx*i+bx-strx, mgny+sy, strx, strya+stryd);
 
     //y axis at left, flip ud
-    ctx.fillText(i+vy, -fmgnx+mgnx     , fmgny+mgny+sy-by*i-by);
+    ctx.fillText(i+scry, -fmgnx+mgnx     , fmgny+mgny+sy-by*i-by);
     //ctx.strokeRect    (mgnx-strx, mgny+sy-by*i-by, strx, stry);
   }
   //draw blocks
@@ -491,8 +519,8 @@ const drawcanout = function() {
   let color;
   for(let x=0; x<nblock; x++){
     for(let y=0; y<nblock; y++){
-      let px = x + vx;
-      let py = y + vy;
+      let px = x + scrx;
+      let py = y + scry;
       //primes
       if(px>0 && py>0){
         for(let ip=0; ip<nprime; ip++){
@@ -539,38 +567,43 @@ const drawcanout = function() {
   //width of cursor
   ctx.lineWidth = 3;
   ctx.strokeStyle = 'black';
-  if(cx>=vx && cx<vx+nblock && cy>=vy && cy<vy+nblock){
-    ctx.strokeRect(mgnx+bx*(cx-vx), mgny+sy-by*(cy-vy)-by, bx, by);
+  if(vx>=scrx && vx<scrx+nblock && vy>=scry && vy<scry+nblock){
+    ctx.strokeRect(mgnx+bx*(vx-scrx), mgny+sy-by*(vy-scry)-by, bx, by);
   }
   ctx.lineWidth = 1;
 
 }//drawcanout
 // slide by swipe and zoom by pinch
 canout.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  downx = e.touches[0].clientX * window.devicePixelRatio;
-  downy = e.touches[0].clientY * window.devicePixelRatio;
-  downvx = vx;
-  downvy = vy;
+  const wx = canout.width  / window.devicePixelRatio;
+  const wy = canout.height / window.devicePixelRatio;
+  downx =      Math.floor((e.touches[0].clientX - canout.getBoundingClientRect().left) /canout.clientWidth  *wx);
+  downy = wy - Math.floor((e.touches[0].clientY - canout.getBoundingClientRect().top ) /canout.clientHeight *wy);
+  downscrx = scrx;
+  downscry = scry;
   if(e.touches.length == 2){
-    downx2 = e.touches[1].clientX * window.devicePixelRatio;
-    downy2 = e.touches[1].clientY * window.devicePixelRatio;
+    downx2 = e.touches[1].clientX;
+    downy2 = e.touches[1].clientY;
     downnblock = nblock;
   }
+  e.preventDefault();
 });
 canout.addEventListener('touchmove', (e) => {
-  e.preventDefault();
+  const wx = canout.width  / window.devicePixelRatio;
+  const wy = canout.height / window.devicePixelRatio;
   if(e.touches.length == 1){
-    const mx = e.touches[0].clientX * window.devicePixelRatio;
-    const my = e.touches[0].clientY * window.devicePixelRatio;
-    vx = downvx + Math.floor((downx - mx) / (canout.width / nblock));
-    vy = downvy + Math.floor((my - downy) / (canout.height / nblock));
+    const mx =      Math.floor((e.touches[0].clientX - canout.getBoundingClientRect().left) /canout.clientWidth  *wx);
+    const my = wy - Math.floor((e.touches[0].clientY - canout.getBoundingClientRect().top ) /canout.clientHeight *wy);
+    scrx = downscrx - Math.floor((mx-downx) / (wx / nblock));
+    scry = downscry - Math.floor((my-downy) / (wy / nblock));
+
+    e.preventDefault();
     drawcanout();
   }else if(e.touches.length == 2){
-    const mx = e.touches[0].clientX * window.devicePixelRatio;
-    const my = e.touches[0].clientY * window.devicePixelRatio;
-    const mx2 = e.touches[1].clientX * window.devicePixelRatio;
-    const my2 = e.touches[1].clientY * window.devicePixelRatio;
+    const mx = e.touches[0].clientX;
+    const my = e.touches[0].clientY;
+    const mx2 = e.touches[1].clientX;
+    const my2 = e.touches[1].clientY;
     const len0 = Math.sqrt((downx - downx2)**2 + (downy - downy2)**2);
     const len1 = Math.sqrt((mx - mx2)**2 + (my - my2)**2);
     const rate = len1 / len0;
@@ -584,10 +617,31 @@ canout.addEventListener('touchmove', (e) => {
     const fy = (downy + downy2) / 2;
     const fx2 = (mx + mx2) / 2;
     const fy2 = (my + my2) / 2;
-    vx = downvx + Math.floor((fx - fx2) / (canout.width / nblock));
-    vy = downvy + Math.floor((fy2 - fy) / (canout.height / nblock));
+    scrx = downscrx + Math.floor((fx - fx2) / (wx / nblock));
+    scry = downscry + Math.floor((fy2 - fy) / (wy / nblock));
 
+    e.preventDefault();
     drawcanout();
+  }
+});
+canout.addEventListener('touchend', (e) => {
+  const wx = canout.width  / window.devicePixelRatio;
+  const wy = canout.height / window.devicePixelRatio;
+  const bx   = Math.floor((wx-2*margin_out)/(nblock+1));
+  const by   = Math.floor((wy-2*margin_out)/(nblock+1));
+  const mgnx = margin_out + bx;
+  const mgny = margin_out;
+  const mx   =      Math.floor((e.changedTouches[0].clientX - canout.getBoundingClientRect().left) * wx / canout.clientWidth);
+  const my   = wy - Math.floor((e.changedTouches[0].clientY - canout.getBoundingClientRect().top ) * wy / canout.clientHeight);
+  const dbx = Math.floor((downx - mgnx) / bx);
+  const dby = Math.floor((downy - mgny) / by);
+  const mbx = Math.floor((   mx - mgnx) / bx);
+  const mby = Math.floor((   my - mgny) / by);
+  if(dbx == mbx && dby == mby){ //click
+    clickblock(mbx + scrx, mby + scry - 1);
+    e.preventDefault();
+    drawcanout();
+    drawcanin();
   }
 });
 
@@ -617,10 +671,10 @@ canout.addEventListener('mousedown', (e) => {
   const wx = canout.width  / window.devicePixelRatio;
   const wy = canout.height / window.devicePixelRatio;
   //dragx = convert browserx to canbas x pixcel
-  downx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) * wx / canout.clientWidth);
-  downy = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) * wy / canout.clientHeight);
-  downvx = vx;
-  downvy = vy;
+  downx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) /canout.clientWidth  *wx);
+  downy = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) /canout.clientHeight *wy);
+  downscrx = scrx;
+  downscry = scry;
   //debug out
   if(false){
     const bx   = Math.floor((wx-2*margin_out)/(nblock+1));
@@ -629,7 +683,6 @@ canout.addEventListener('mousedown', (e) => {
     const mgny = margin_out;
     const dbx = Math.floor((downx - mgnx) / bx);
     const dby = Math.floor((downy - mgny) / by);
-    console.log("dbx = " + dbx + ", dby = " + dby);
   }
   dragging = true;
 });
@@ -643,18 +696,18 @@ canout.addEventListener('mousemove', (e) => {
     const mgnx = margin_out + bx;
     const mgny = margin_out;
 
-    const mx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) * canout.width / canout.clientWidth);
-    const my = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) * canout.height / canout.clientHeight);
+    const mx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) /canout.clientWidth  *wx);
+    const my = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) /canout.clientHeight *wy);
     
     const dbx = Math.floor((downx - mgnx) / bx);
     const dby = Math.floor((downy - mgny) / by);
     const mbx = Math.floor((   mx - mgnx) / bx);
     const mby = Math.floor((   my - mgny) / by);
-    newvx = downvx - (mbx - dbx);
-    newvy = downvy - (mby - dby);
-    if(!isNaN(newvx) && !isNaN(newvy)){
-      vx = newvx;
-      vy = newvy;
+    newscrx = downscrx - (mbx - dbx);
+    newscry = downscry - (mby - dby);
+    if(!isNaN(newscrx) && !isNaN(newscry)){
+      scrx = newscrx;
+      scry = newscry;
     }
 
     e.preventDefault();
@@ -669,34 +722,35 @@ canout.addEventListener('mouseup', (e) => {
   const by   = Math.floor((wy-2*margin_out)/(nblock+1));
   const mgnx = margin_out + bx;
   const mgny = margin_out;
-  const mx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) * canout.width / canout.clientWidth);
-  const my = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) * canout.height / canout.clientHeight);
+  const mx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) / canout.clientWidth  * wx);
+  const my = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) / canout.clientHeight * wy);
   const dbx = Math.floor((downx - mgnx) / bx);
   const dby = Math.floor((downy - mgny) / by);
   const mbx = Math.floor((   mx - mgnx) / bx);
   const mby = Math.floor((   my - mgny) / by);
 
   if(dbx == mbx && dby == mby){ //click
-    cx = dbx + vx;
-    cy = dby + vy - 1;
-
-    const k=getkind(cx, cy);
-    for(let j=0; j<nkind; j++){
-      if(k == name2kind(form0.kinds[j].value)){
-        form0.kinds[j].checked = true;
-        break;
-      }else{
-        form0.kinds[j].checked = false;
-      }
-    }
+    clickblock(mbx + scrx, mby + scry - 1);
     e.preventDefault();
     drawcanout();
     drawcanin();
-
   }
 
   dragging = false;
 });
+const clickblock = function(x, y){
+  vx = x;
+  vy = y;
+  const k=getkind(vx, vy);
+  for(let j=0; j<nkind; j++){
+    if(k == name2kind(form0.kinds[j].value)){
+      form0.kinds[j].checked = true;
+      break;
+    }else{
+      form0.kinds[j].checked = false;
+    }
+  }
+};
 canout.addEventListener('mouseout', (e) => {
   dragging = false;
 });
