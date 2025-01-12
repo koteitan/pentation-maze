@@ -1,4 +1,4 @@
-const jsversion = 'v0.4';
+const jsversion = 'v0.5';
 const neq    = 14; //number of equations
 const nprime =  8; //number of prime numbers
 const nkind  = 13; //number of kinds of blocks
