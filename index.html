@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
       .kindtd {
-        width: 100px;
         text-align: center;
         border: 1px solid #000;
         font-size: 13px;
@@ -17,42 +16,56 @@
       body {
         font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
       }
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .item {
+        flex: 1 1 auto;
+        vertical-align: top;
+      }
     </style>
 </head>
 <body><form id="form0">
 
 <h1>pentation maze</h1>
 <textarea id="debug" rows="10" cols="50" style="display:none;"></textarea>
-<button id="zoomout" type=button>zoom out</button>
-<button id="zoomin" type=button>zoom in</button> or use mouse wheel<br>
-<canvas id="canout" width="400" height="400" style="border:1px solid #000;"></canvas><br>
-<table>
-  <tr>
-    <td><input type="radio" name="kinds" value="diag"     ></td><td class=kindtd id=kind9 >diag</td>
-    <td><input type="radio" name="kinds" value="0" checked></td><td class=kindtd id=kind0 >2</td>
-    <td><input type="radio" name="kinds" value="1"        ></td><td class=kindtd id=kind1 >3</td>
-    <td><input type="radio" name="kinds" value="2"        ></td><td class=kindtd id=kind2 >5</td>
-    <td><input type="radio" name="kinds" value="3"        ></td><td class=kindtd id=kind3 >7</td>
-  </tr>                                                            
-  <tr>                                                                               
-    <td><input type="radio" name="kinds" value="4"        ></td><td class=kindtd id=kind4 >11</td>
-    <td><input type="radio" name="kinds" value="5"        ></td><td class=kindtd id=kind5 >13</td>
-    <td><input type="radio" name="kinds" value="6"        ></td><td class=kindtd id=kind6 >17</td>
-    <td><input type="radio" name="kinds" value="7"        ></td><td class=kindtd id=kind7 >19</td>
-  </tr>                                                            
-  <tr>                                                                               
-    <td><input type="radio" name="kinds" value="start"    ></td><td class=kindtd id=kind8 >starter</td>
-    <td><input type="radio" name="kinds" value="amp"      ></td><td class=kindtd id=kind10>amp</td>
-    <td><input type="radio" name="kinds" value="bottom"   ></td><td class=kindtd id=kind11>bottom</td>
-    <td><input type="radio" name="kinds" value="thru"     ></td><td class=kindtd id=kind12>thru</td>
-  </tr>
-</table><br>
-<canvas id="canin"  width="400" height="400" style="border:1px solid #000;"></canvas>
-<br>
-<button id="save">save png</button>
-<br>
+<div class="container">
+  <div class="item">
+    <canvas id="canout" width="400" height="400" style="border:1px solid #000;"></canvas><br>
+    <button id="zoomout" type=button>zoom out</button>
+    <button id="zoomin" type=button>zoom in</button> or use mouse wheel<br>
+  </div>
+  <div class="item">
+    <canvas id="canin"  width="400" height="400" style="border:1px solid #000;"></canvas>
+    <br>
+    <table>
+      <tr>
+        <td><input type="radio" name="kinds" value="diag"         ></td><td class=kindtd id=kind9 >diag</td>
+        <td><input type="radio" name="kinds" value="0"            ></td><td class=kindtd id=kind0 >2</td>
+        <td><input type="radio" name="kinds" value="1"            ></td><td class=kindtd id=kind1 >3</td>
+        <td><input type="radio" name="kinds" value="2"            ></td><td class=kindtd id=kind2 >5</td>
+        <td><input type="radio" name="kinds" value="3"            ></td><td class=kindtd id=kind3 >7</td>
+      </tr>                                                            
+      <tr>                                                                               
+        <td><input type="radio" name="kinds" value="4"            ></td><td class=kindtd id=kind4 >11</td>
+        <td><input type="radio" name="kinds" value="5"            ></td><td class=kindtd id=kind5 >13</td>
+        <td><input type="radio" name="kinds" value="6"            ></td><td class=kindtd id=kind6 >17</td>
+        <td><input type="radio" name="kinds" value="7"            ></td><td class=kindtd id=kind7 >19</td>
+      </tr>                                                            
+      <tr>                                                                               
+        <td><input type="radio" name="kinds" value="start" checked></td><td class=kindtd id=kind8 >starter</td>
+        <td><input type="radio" name="kinds" value="amp"          ></td><td class=kindtd id=kind10>amp</td>
+        <td><input type="radio" name="kinds" value="bottom"       ></td><td class=kindtd id=kind11>bottom</td>
+        <td><input type="radio" name="kinds" value="thru"         ></td><td class=kindtd id=kind12>thru</td>
+      </tr>
+    </table>
+    <button id="save">save png</button>
+  </div>
+</div>
 
-<address id="address">pentation maze: version v0.7+<span id="jsversion"></span><br>
+<address id="address">pentation maze: version v0.8+<span id="jsversion"></span><br>
 programmed by <a href='https://twitter.com/koteitan'>koteitan</a> code at <a href='https://github.com/koteitan/pentamaze/'>github</a><br>
 </address>
 <script src="main.js"></script>

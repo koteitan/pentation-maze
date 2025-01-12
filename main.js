@@ -1,4 +1,5 @@
-const jsversion = 'v0.7';
+const jsversion = 'v0.8';
+//mathematics ----------------------------------
 const neq    = 14; //number of equations
 const nprime =  8; //number of prime numbers
 const nkind  = 13; //number of kinds of blocks
@@ -19,19 +20,42 @@ const blockers = [ //blockers[ie][ip]
    [0  , 0  , 0  , 0  , 1  ,  0  ,  0 ,  0],
    [0  , 0  , 0  , 0  , 0  ,  0  ,  0 ,  1]
 ];
-const kind2name  = ['2'  , '3'     , '5'     , '7'    , '11'  , '13'    , '17'   , '19'  , 'diag' , 'amp'    , 'bottom', 'start', 'thru'];
-  
+const kind2name  = ['2','3','5','7','11','13','17','19','diag','amp','start','bottom','thru'];
 const divs  =[ -1,  0,  1,  0,  2,  1,  2,  3, 4, 1, 5, 2, 6, 3];
 const amps  =[  0,  9, 25, 13, 49, 17, 19,121, 1, 3, 1, 5, 1, 7];
 const primes=[2,3,5,7,11,13,17,19];
-// Select the canvas and button elements
-const canout = document.getElementById('canout');
-const canin  = document.getElementById('canin');
-const ctxout = canout.getContext('2d');
-const ctxin  = canin .getContext('2d');
 let kind2color = [];
-
-
+const name2kind = function(name){
+  for(let i=0; i<nkind; i++){
+    if(kind2name[i] == name){
+      return i;
+    }
+  }
+  return -1;
+}
+const getkind = function(x, y){
+  if(x==0 && y==8){
+    return name2kind('start');
+  }else if(x>=0 && y>=0 && x==y){
+    return name2kind('diag');
+  }else if(x>0 && y>0){
+    for(let a=0; a<amps.length; a++){
+      if(y == x * amps[a] && amps[a] > 1){
+        return name2kind('amp');
+      }
+    }
+  }else if(x>0 && y==0){
+    return name2kind('bottom');
+  }else if(x>=0 && y>=0){
+    //primes
+    for(let ip=0; ip<nprime; ip++){
+      if(y*primes[ip] == x){
+        return ip;
+      }
+    }
+  }
+  return name2kind('thru');
+}
 window.onload = function() {
   document.getElementById('jsversion').textContent = jsversion;
   //make kind2color
@@ -45,19 +69,19 @@ window.onload = function() {
   }
   if(true){
     kind2color = [
-      'rgb(255,128,  0)', //orange
-      'rgb(255,255,  0)', //yellow
-      'rgb(  0,255,  0)', //green
-      'rgb(  0,255,255)', //cyan
-      'rgb(  0,128,255)', //sky blue
-      'rgb(  0,  0,255)', //blue
-      'rgb(128,  0,255)', //purple
-      'rgb(255,  0,255)', //magenta
-      'rgb(255,128,128)', //pink
-      'rgb(255,  0,  0)', //red
-      'rgb(128,128,128)', //gray
-      'rgb(192,192,192)', //silver
-      'rgb(255,255,255)', //white
+      'rgb(255,128,  0)', //orange   2
+      'rgb(255,255,  0)', //yellow   3
+      'rgb(  0,255,  0)', //green    5
+      'rgb(  0,255,255)', //vyan     7
+      'rgb(  0,128,255)', //sky blue 11
+      'rgb(  0,  0,255)', //blue     13
+      'rgb(128,  0,255)', //purple   17
+      'rgb(255,  0,255)', //magenta  19
+      'rgb(255,128,128)', //pink     diag
+      'rgb(255,  0,  0)', //red      amp
+      'rgb(128,128,128)', //gray     bottom
+      'rgb(192,192,192)', //silver   start
+      'rgb(255,255,255)', //white    thru
     ];
   }
   for(let i=0; i<nkind; i++){
@@ -65,33 +89,26 @@ window.onload = function() {
   }
   resize();
 }
-const initgui = function(){
-  resize();
-}
-const resize = function() {
-  const mgnx = 40;
-  const mgny = 0;
-  const wx =  window.innerWidth  - mgnx;
-  const wy = (window.innerHeight - mgny) / 2;
-  const w = Math.min(wx, wy);
-  
-  const dpr = window.devicePixelRatio || 1;
-  canin.width = w * dpr;
-  canin.height = w * dpr;
-  canout.width = w * dpr;
-  canout.height = w * dpr;
-  
-  canin.style.width = `${w}px`;
-  canin.style.height = `${w}px`;
-  canout.style.width = `${w}px`;
-  canout.style.height = `${w}px`;
-
-  ctxin.scale(dpr, dpr);
-  ctxout.scale(dpr, dpr);
-
-  drawcanin();
-  drawcanout();
-};
+// GUI events
+const margin_out = 20;
+const canout = document.getElementById('canout');
+const canin  = document.getElementById('canin');
+const ctxout = canout.getContext('2d');
+const ctxin  = canin .getContext('2d');
+let nblock = 10; //number of blocks in a view
+let vx = 0;           //current view x
+let vy = 0;           //current view y
+let cx = 0;           //current cursor x
+let cy = 8;           //current cursor y
+let dragging = false; //mouse dragging flag
+let downx = 0;        //mouse and touch down x
+let downy = 0;        //mouse and touch down y
+let downx2 = 0;       //second touch down x
+let downy2 = 0;       //second touch down y
+let downvx = vx;      //view x when down
+let downvy = vy;      //view y when down
+let downnblock = nblock; //nblock when down
+//debug print
 const print = function(str){
   document.getElementById('debug').style.display = 'block';
   document.getElementById('debug').textContent = str;
@@ -104,7 +121,7 @@ const margin_in = 20;
 const drawcanin = function() {
   // settings
   const margin = margin_in;
-  const ctx = ctxin;
+  const ctx    = ctxin;
   const wx     = canin.width  / window.devicePixelRatio;
   const wy     = canin.height / window.devicePixelRatio;
   const ntile  = neq*2;
@@ -117,6 +134,7 @@ const drawcanin = function() {
   }
   const bx     = tx*ntile;
   const by     = ty*ntile;
+  const kind   = document.querySelector('input[name="kinds"]:checked').value;
   
   //draw a background
   ctx.fillStyle = 'white';
@@ -142,7 +160,6 @@ const drawcanin = function() {
   //draw path
   ctx.strokeStyle = 'blue';
   ctx.fillStyle   = 'blue';
-  const kind = form0.querySelector('input[name="kinds"]:checked').value;
   if(isFinite(kind)){
     //draw primes
     const selp   = parseInt(kind);
@@ -408,33 +425,6 @@ const drawcanin = function() {
   }//if(isNaN)
 }
 
-function findfontsize(ctx, text, bx, by) {
-    let minFontSize = 1;
-    let maxFontSize = 100; // 大きな値を仮定
-    let bestFontSize = minFontSize;
-
-    while (minFontSize <= maxFontSize) {
-        const fontSize = Math.floor((minFontSize + maxFontSize) / 2);
-        ctx.font = `${fontSize}px Arial`; // フォントサイズを設定
-        // 文字列の幅と高さを測定
-        const metrics = ctx.measureText(text);
-        const width = metrics.width;
-        const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-
-        if (width <= bx && height <= by) {
-            bestFontSize = fontSize; // 現在のフォントサイズが収まる場合は更新
-            minFontSize = fontSize + 1;
-        } else {
-            maxFontSize = fontSize - 1; // 超えた場合はフォントサイズを縮小
-        }
-    }
-    return bestFontSize;
-}
-
-const margin_out = 20;
-let cx = 0; //current block x
-let cy = 0; //current block y
-let nblock = 10;
 const drawcanout = function() {
   // settings
   const ctx = ctxout;
@@ -469,7 +459,7 @@ const drawcanout = function() {
     ctx.stroke();
   }
   //draw axes
-  const text = Math.max(Math.abs(cx), Math.abs(cx+nblock-1)).toString();
+  const text = Math.max(Math.abs(vx), Math.abs(vx+nblock-1)).toString();
   const fmgnx = 2;
   const fmgny = 2;
   let fontsize = findfontsize(ctx, text, bx-fmgnx*2, by-fmgny*2)*0.8;
@@ -484,11 +474,11 @@ const drawcanout = function() {
   ctx.fillStyle    = 'black';
   for(let i=0; i<nblock; i++){
     //x axis at bottom
-    ctx.fillText(i+cx, -fmgnx+mgnx+bx*i+bx     ,fmgny+mgny+sy);
+    ctx.fillText(i+vx, -fmgnx+mgnx+bx*i+bx     ,fmgny+mgny+sy);
     //ctx.strokeRect    (mgnx+bx*i+bx-strx, mgny+sy, strx, strya+stryd);
 
     //y axis at left, flip ud
-    ctx.fillText(i+cy, -fmgnx+mgnx     , fmgny+mgny+sy-by*i-by);
+    ctx.fillText(i+vy, -fmgnx+mgnx     , fmgny+mgny+sy-by*i-by);
     //ctx.strokeRect    (mgnx-strx, mgny+sy-by*i-by, strx, stry);
   }
   //draw blocks
@@ -501,8 +491,8 @@ const drawcanout = function() {
   let color;
   for(let x=0; x<nblock; x++){
     for(let y=0; y<nblock; y++){
-      let px = x + cx;
-      let py = y + cy;
+      let px = x + vx;
+      let py = y + vy;
       //primes
       if(px>0 && py>0){
         for(let ip=0; ip<nprime; ip++){
@@ -515,7 +505,7 @@ const drawcanout = function() {
       let ikind = nprime;
       //starter
       color = kind2color[ikind++];
-      if(px==8 && py==0){
+      if(px==0 && py==8){
         drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
         continue;
       }
@@ -543,25 +533,25 @@ const drawcanout = function() {
         continue;
       }
       //thru
-    }
+    }//for(y)
+  }//for(x)
+  //draw cursor
+  //width of cursor
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'black';
+  if(cx>=vx && cx<vx+nblock && cy>=vy && cy<vy+nblock){
+    ctx.strokeRect(mgnx+bx*(cx-vx), mgny+sy-by*(cy-vy)-by, bx, by);
   }
-}
-// GUI
+  ctx.lineWidth = 1;
+
+}//drawcanout
 // slide by swipe and zoom by pinch
-let dragging = false;
-let downx = 0;
-let downy = 0;
-let downcx = cx;
-let downcy = cy;
-let downx2 = 0;
-let downy2 = 0;
-let downnblock = nblock;
 canout.addEventListener('touchstart', (e) => {
   e.preventDefault();
   downx = e.touches[0].clientX * window.devicePixelRatio;
   downy = e.touches[0].clientY * window.devicePixelRatio;
-  downcx = cx;
-  downcy = cy;
+  downvx = vx;
+  downvy = vy;
   if(e.touches.length == 2){
     downx2 = e.touches[1].clientX * window.devicePixelRatio;
     downy2 = e.touches[1].clientY * window.devicePixelRatio;
@@ -573,8 +563,8 @@ canout.addEventListener('touchmove', (e) => {
   if(e.touches.length == 1){
     const mx = e.touches[0].clientX * window.devicePixelRatio;
     const my = e.touches[0].clientY * window.devicePixelRatio;
-    cx = downcx + Math.floor((downx - mx) / (canout.width / nblock));
-    cy = downcy + Math.floor((my - downy) / (canout.height / nblock));
+    vx = downvx + Math.floor((downx - mx) / (canout.width / nblock));
+    vy = downvy + Math.floor((my - downy) / (canout.height / nblock));
     drawcanout();
   }else if(e.touches.length == 2){
     const mx = e.touches[0].clientX * window.devicePixelRatio;
@@ -594,8 +584,9 @@ canout.addEventListener('touchmove', (e) => {
     const fy = (downy + downy2) / 2;
     const fx2 = (mx + mx2) / 2;
     const fy2 = (my + my2) / 2;
-    cx = downcx + Math.floor((fx - fx2) / (canout.width / nblock));
-    cy = downcy + Math.floor((fy2 - fy) / (canout.height / nblock));
+    vx = downvx + Math.floor((fx - fx2) / (canout.width / nblock));
+    vy = downvy + Math.floor((fy2 - fy) / (canout.height / nblock));
+
     drawcanout();
   }
 });
@@ -616,18 +607,20 @@ canout.addEventListener('wheel', function(e){
     }
   }
   zoom(nblocknew);
+
+  drawcanout();
   e.preventDefault();
   return false;
 });
-// slide by mouse drag
+// mouse down (start to move or click)
 canout.addEventListener('mousedown', (e) => {
   const wx = canout.width  / window.devicePixelRatio;
   const wy = canout.height / window.devicePixelRatio;
   //dragx = convert browserx to canbas x pixcel
   downx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) * wx / canout.clientWidth);
   downy = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) * wy / canout.clientHeight);
-  downcx = cx;
-  downcy = cy;
+  downvx = vx;
+  downvy = vy;
   //debug out
   if(false){
     const bx   = Math.floor((wx-2*margin_out)/(nblock+1));
@@ -640,6 +633,7 @@ canout.addEventListener('mousedown', (e) => {
   }
   dragging = true;
 });
+// mouse move (move)
 canout.addEventListener('mousemove', (e) => {
   if(dragging){
     const wx = canout.width  / window.devicePixelRatio;
@@ -656,17 +650,51 @@ canout.addEventListener('mousemove', (e) => {
     const dby = Math.floor((downy - mgny) / by);
     const mbx = Math.floor((   mx - mgnx) / bx);
     const mby = Math.floor((   my - mgny) / by);
-    //console.log("mbx = " + mbx + ", mby = " + mby + ", dbx = " + dbx + ", dby = " + dby + ", mbx-dbx = " + (mbx-dbx) + ", mby-dby = " + (mby-dby));
-    newcx = downcx - (mbx - dbx);
-    newcy = downcy - (mby - dby);
-    if(!isNaN(newcx) && !isNaN(newcy)){
-      cx = newcx;
-      cy = newcy;
+    newvx = downvx - (mbx - dbx);
+    newvy = downvy - (mby - dby);
+    if(!isNaN(newvx) && !isNaN(newvy)){
+      vx = newvx;
+      vy = newvy;
     }
+
+    e.preventDefault();
     drawcanout();
   }
 });
+// mouse up (end to move or click)
 canout.addEventListener('mouseup', (e) => {
+  const wx = canout.width  / window.devicePixelRatio;
+  const wy = canout.height / window.devicePixelRatio;
+  const bx   = Math.floor((wx-2*margin_out)/(nblock+1));
+  const by   = Math.floor((wy-2*margin_out)/(nblock+1));
+  const mgnx = margin_out + bx;
+  const mgny = margin_out;
+  const mx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) * canout.width / canout.clientWidth);
+  const my = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) * canout.height / canout.clientHeight);
+  const dbx = Math.floor((downx - mgnx) / bx);
+  const dby = Math.floor((downy - mgny) / by);
+  const mbx = Math.floor((   mx - mgnx) / bx);
+  const mby = Math.floor((   my - mgny) / by);
+
+  if(dbx == mbx && dby == mby){ //click
+    cx = dbx + vx;
+    cy = dby + vy - 1;
+
+    const k=getkind(cx, cy);
+    for(let j=0; j<nkind; j++){
+      if(k == name2kind(form0.kinds[j].value)){
+        form0.kinds[j].checked = true;
+        break;
+      }else{
+        form0.kinds[j].checked = false;
+      }
+    }
+    e.preventDefault();
+    drawcanout();
+    drawcanin();
+
+  }
+
   dragging = false;
 });
 canout.addEventListener('mouseout', (e) => {
@@ -676,11 +704,13 @@ canout.addEventListener('mouseout', (e) => {
 // by button
 document.getElementById('zoomin').addEventListener('click', function(e){
   zoom(nblock-1);
+  drawcanout();
   e.preventDefault();
   return false;
 });
 document.getElementById('zoomout').addEventListener('click', function(e){
   zoom(nblock+1);
+  drawcanout();
   e.preventDefault();
   return false;
 });
@@ -692,23 +722,47 @@ for(let i=0; i<nkind; i++){
 }
 // save button
 form0.save.addEventListener('click', () => {
-    // Convert canvas content to a data URL (base64-encoded PNG)
-    const image = canin.toDataURL('image/png');
+  // Convert canvas content to a data URL (base64-encoded PNG)
+  const image = canin.toDataURL('image/png');
 
-    // Create a temporary link element
-    const link = document.createElement('a');
-    link.href = image; // Set the link href to the data URL
-    link.download = 'canvas-image.png'; // Set the default file name
+  // Create a temporary link element
+  const link = document.createElement('a');
+  link.href = image; // Set the link href to the data URL
+  link.download = 'canvas-image.png'; // Set the default file name
 
-    // Simulate a click on the link to trigger download
-    link.click();
+  // Simulate a click on the link to trigger download
+  link.click();
 });
 // resize
+const resize = function() {
+  const mgnx = 40;
+  const mgny = 0;
+  const wx =  window.innerWidth  - mgnx;
+  const wy = (window.innerHeight - mgny) / 2;
+  const w = Math.min(wx, wy);
+  
+  const dpr = window.devicePixelRatio || 1;
+  canin.width = w * dpr;
+  canin.height = w * dpr;
+  canout.width = w * dpr;
+  canout.height = w * dpr;
+  
+  canin.style.width = `${w}px`;
+  canin.style.height = `${w}px`;
+  canout.style.width = `${w}px`;
+  canout.style.height = `${w}px`;
+
+  ctxin.scale(dpr, dpr);
+  ctxout.scale(dpr, dpr);
+
+  drawcanin();
+  drawcanout();
+};
 window.addEventListener('resize', resize);
 //zoom common
-const nblockmin = 2;
-const nblockmax = 1000;
 const zoom = function(nblocknew){
+  const nblockmin = 2;
+  const nblockmax = 1000;
   if(nblocknew < nblockmin){
     nblock = nblockmin;
   }else if(nblocknew > nblockmax){
@@ -716,10 +770,9 @@ const zoom = function(nblocknew){
   }else{
     nblock = nblocknew;
   }
-  drawcanout();
 }
-
-
+//general functions -------------------------------------------
+//convert real number to color
 const real2color = (i, bmin=0, bmax=1) => {
   let r, g, b;
   if(i < 1/3){
@@ -740,3 +793,27 @@ const real2color = (i, bmin=0, bmax=1) => {
   b = (b * (bmax - bmin) + bmin) * 255;
   return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
+//find font size to fit the box
+function findfontsize(ctx, text, bx, by) {
+  let minFontSize = 1;
+  let maxFontSize = 100; // 大きな値を仮定
+  let bestFontSize = minFontSize;
+
+  while (minFontSize <= maxFontSize) {
+      const fontSize = Math.floor((minFontSize + maxFontSize) / 2);
+      ctx.font = `${fontSize}px Arial`; // フォントサイズを設定
+      // 文字列の幅と高さを測定
+      const metrics = ctx.measureText(text);
+      const width = metrics.width;
+      const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+      if (width <= bx && height <= by) {
+          bestFontSize = fontSize; // 現在のフォントサイズが収まる場合は更新
+          minFontSize = fontSize + 1;
+      } else {
+          maxFontSize = fontSize - 1; // 超えた場合はフォントサイズを縮小
+      }
+  }
+  return bestFontSize;
+}
+
