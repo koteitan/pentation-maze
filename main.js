@@ -1,4 +1,4 @@
-const jsversion = 'v0.8';
+const jsversion = 'v0.9';
 //mathematics ----------------------------------
 const neq    = 14; //number of equations
 const nprime =  8; //number of prime numbers
@@ -21,10 +21,10 @@ const blockers = [ //blockers[ie][ip]
    [0  , 0  , 0  , 0  , 0  ,  0  ,  0 ,  1]
 ];
 const kind2name  = ['2','3','5','7','11','13','17','19','diag','amp','start','bottom','thru'];
-const divs  =[ -1,  0,  1,  0,  2,  1,  2,  3, 4, 1, 5, 2, 6, 3];
-const amps  =[  0,  9, 25, 13, 49, 17, 19,121, 1, 3, 1, 5, 1, 7];
-const primes=[2,3,5,7,11,13,17,19];
-let kind2color = [];
+const prime2kind = [-1,-1,  0,  1, -1,  2, -1,  3, -1,  -1,-1, 4,-1,-1,-1, 5,-1,-1,-1, 6];
+const divs       = [ 2, 2, 3, 2, 5, 3, 5,  7, 13, 5, 17, 7, 19, 11]; //divisors
+const amps       = [ 0, 9,25,13,49,17,19,121,  1, 3,  1, 5,  1,  7]; //amplifier
+const primes     = [2,3,5,7,11,13,17,19];
 const name2kind = function(name){
   for(let i=0; i<nkind; i++){
     if(kind2name[i] == name){
@@ -36,17 +36,21 @@ const name2kind = function(name){
 const getkind = function(x, y){
   if(x==0 && y==8){
     return name2kind('start');
-  }else if(x>=0 && y>=0 && x==y){
+  }
+  if(x>=0 && y>=0 && x==y){
     return name2kind('diag');
-  }else if(x>0 && y>0){
+  }
+  if(x>0 && y>0){
     for(let a=0; a<amps.length; a++){
       if(y == x * amps[a] && amps[a] > 1){
         return name2kind('amp');
       }
     }
-  }else if(x>0 && y==0){
+  }
+  if(x>0 && y==0){
     return name2kind('bottom');
-  }else if(x>=0 && y>=0){
+  }
+  if(x>=0 && y>=0){
     //primes
     for(let ip=0; ip<nprime; ip++){
       if(y*primes[ip] == x){
@@ -56,8 +60,26 @@ const getkind = function(x, y){
   }
   return name2kind('thru');
 }
+let cx   ; //current cursor x
+let cy   ; //current cursor y
+let cport; //current cursor port
+let cdirx; //current cursor port x direction
+let cdiry; //current cursor port y direction
+const initmath = function(){
+  cx     =  0; //starter
+  cy     =  8; //starter
+  vx     = cx;
+  vy     = cy;
+  cport  =  0; //start port
+  cdirx  = +1; //right
+  cdiry  =  0; //right
+}
+let kind2color = [];
 window.onload = function() {
+  //version
   document.getElementById('jsversion').textContent = jsversion;
+  //math
+  initmath();
   //make kind2color
   if(false){
     for(let i=0; i<nprime; i++){
@@ -95,16 +117,11 @@ const canout = document.getElementById('canout');
 const canin  = document.getElementById('canin');
 const ctxout = canout.getContext('2d');
 const ctxin  = canin .getContext('2d');
-let nblock = 10; //number of blocks in a view
+let nblock = 9; //number of blocks in a view
 let scrx   =  0; //current view x
 let scry   =  0; //current view y
 let vx     =  0; //current cursor x = starter
 let vy     =  8; //current cursor y = starter
-let cx     =  0; //current cursor x = starter
-let cy     =  8; //current cursor y = starter
-let cport  =  0; //current cursor port = start port
-let cdirx  = +1; //current cursor port x direction = right
-let cdiry  =  0; //current cursor port y direction = none
 let downx  =  0;         //mouse and touch down x
 let downy  =  0;         //mouse and touch down y
 let downx2 =  0;         //second touch down x
@@ -176,9 +193,11 @@ const drawcanin = function() {
   if(isFinite(kind)){
     //draw primes
     const selp   = parseInt(kind);
+    const ikind  = prime2kind[selp];
+    const iprime = ikind;
     for(let ie=0; ie<neq; ie++){
       //draw filter
-      if(blockers[ie][selp] == 1){
+      if(blockers[ie][iprime] == 1){
         //stop band
         colorpath(iscur && ie==cport && cdiry==-1);
         //connect top ports ie * 2  and ie * 2 + 1 by arc arrow
@@ -218,15 +237,15 @@ const drawcanin = function() {
         //connect bottom port ie * 2+1 to left port ie * 2 + 1 by rounded L-shape line
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
-        ctx.lineTo(margin+tx*ie*2+tx+tx/2, margin+by-ty*(ie*2+1));
-        ctx.arc   (margin+tx*ie*2+tx     , margin+by-ty*(ie*2+1), tx/2, 0, -Math.PI/2, true);
-        ctx.lineTo(margin                , margin+by-ty*(ie*2+1)-ty/2);
+        ctx.lineTo(margin+tx*ie*2+tx+tx/2, margin+by-ty*ie*2-ty/2);
+        ctx.arc   (margin+tx*ie*2+tx     , margin+by-ty*ie*2-ty, tx/2, 0, -Math.PI/2, true);
+        ctx.lineTo(margin                , margin+by-ty*ie*2-ty-ty/2);
         ctx.stroke();
         //draw arrow
         ctx.beginPath();
-        ctx.moveTo(margin                , margin+by-ty*(ie*2+1)-ty/2     );
-        ctx.lineTo(margin+tx/2           , margin+by-ty*(ie*2+1)-ty/2-tx/4);
-        ctx.lineTo(margin+tx/2           , margin+by-ty*(ie*2+1)-ty/2+tx/4);
+        ctx.moveTo(margin                , margin+by-ty*ie*2-ty-ty/2     );
+        ctx.lineTo(margin+tx/2           , margin+by-ty*ie*2-ty-ty/2-tx/4);
+        ctx.lineTo(margin+tx/2           , margin+by-ty*ie*2-ty-ty/2+tx/4);
         ctx.closePath();
         ctx.fill();
       }else{
@@ -275,17 +294,17 @@ const drawcanin = function() {
       ctx.lineTo(margin     , margin+by-ty/2);
       ctx.closePath();
       ctx.fill();
-      //connect bottom ports 1 to diagonal line
-      colorpath(iscur && cport==1 && cdiry==+1);
+      //connect left ports 1 to diagonal line
+      colorpath(iscur && cport==1 && cdirx==-1);
       ctx.beginPath();
-      ctx.moveTo(margin+tx*1+tx/2, margin+by);
+      ctx.moveTo(margin+bx,        margin+by-ty-ty/2);
       ctx.lineTo(margin+tx*1+tx/2, margin+by-ty-ty/2);
       ctx.stroke();
       //draw arrow
       ctx.beginPath();
       ctx.moveTo(margin+tx*1+tx/2     , margin+by-ty-ty/2     );
-      ctx.lineTo(margin+tx*1+tx/2+tx/4, margin+by-ty-ty/2+ty/2);
-      ctx.lineTo(margin+tx*1+tx/2-tx/4, margin+by-ty-ty/2+ty/2);
+      ctx.lineTo(margin+tx*1+tx/2+tx/2, margin+by-ty-ty/2+tx/4);
+      ctx.lineTo(margin+tx*1+tx/2+tx/2, margin+by-ty-ty/2-tx/4);
       ctx.closePath();
       ctx.fill();
       ctx.beginPath();
@@ -296,23 +315,21 @@ const drawcanin = function() {
       ctx.fill();
       for(let ie=0; ie<neq; ie++){
         //condition-incrementer
-        if(ie>0){
-          //connect arc from bottom ports ie * 2 + 1 to bottom ports ie * 2 + 2
-          colorpath(iscur && ie==cport && cdiry==+1);
-          ctx.beginPath();
-          ctx.moveTo(margin+tx*ie*2+tx/2   , margin+by);
-          ctx.lineTo(margin+tx*ie*2+tx/2   , margin+by-ty/2);
-          ctx.arc   (margin+tx*ie*2+tx     , margin+by-ty/2, tx/2, Math.PI, 0, false);
-          ctx.lineTo(margin+tx*ie*2+tx+tx/2, margin+by);
-          ctx.stroke();
-          //draw arrow
-          ctx.beginPath();
-          ctx.moveTo(margin+tx*ie*2+tx+tx/2     , margin+by     );
-          ctx.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+by-tx/2);
-          ctx.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+by-tx/2);
-          ctx.closePath();
-          ctx.fill();
-        }
+        //connect arc from bottom ports ie * 2 + 1 to bottom ports ie * 2 + 2
+        colorpath(iscur && ie==cport && cdiry==+1);
+        ctx.beginPath();
+        ctx.moveTo(margin+tx*ie*2+tx+tx/2   , margin+by);
+        ctx.lineTo(margin+tx*ie*2+tx+tx/2   , margin+by-ty/2);
+        ctx.arc   (margin+tx*ie*2+tx+tx     , margin+by-ty/2, tx/2, Math.PI, 0, false);
+        ctx.lineTo(margin+tx*ie*2+tx+tx+tx/2, margin+by);
+        ctx.stroke();
+        //draw arrow
+        ctx.beginPath();
+        ctx.moveTo(margin+tx*(ie+1)*2+tx/2     , margin+by     );
+        ctx.lineTo(margin+tx*(ie+1)*2+tx/2+tx/4, margin+by-tx/2);
+        ctx.lineTo(margin+tx*(ie+1)*2+tx/2-tx/4, margin+by-tx/2);
+        ctx.closePath();
+        ctx.fill();
         //connect L shape lines from right ports ie * 2 +1 to top ports ie * 2 + 1
         if(ie>0){
           colorpath(iscur && ie==cport && cdirx==-1);
@@ -333,26 +350,34 @@ const drawcanin = function() {
         //connect L shape lines from left ports ie * 2 to bottom ports 0
         colorpath(iscur && ie==cport && cdirx==+1);
         ctx.beginPath();
-        ctx.moveTo(margin     , margin+by-ty*ie*2-ty/2);
-        ctx.lineTo(margin+tx/2, margin+by-ty*ie*2-ty/2);
-        ctx.lineTo(margin+tx/2, margin+by);
-        ctx.stroke();
-        if(ie<neq-1){
-          //draw down arrow
-          ctx.beginPath();
-          ctx.moveTo(margin+tx/2,      margin+by-ty/2-ty*ie*2     );
-          ctx.lineTo(margin+tx/2-tx/4, margin+by-ty/2-ty*ie*2-ty/2);
-          ctx.lineTo(margin+tx/2+tx/4, margin+by-ty/2-ty*ie*2-ty/2);
-          ctx.closePath();
-          ctx.fill();
-          //draw right arrow
-          ctx.beginPath();
-          ctx.moveTo(margin+tx/2,      margin+by-ty/2-ty*ie*2);
-          ctx.lineTo(margin+tx/2-tx/2, margin+by-ty/2-ty*ie*2-tx/4);
-          ctx.lineTo(margin+tx/2-tx/2, margin+by-ty/2-ty*ie*2+tx/4);
-          ctx.closePath();
-          ctx.fill();
+        ctx.moveTo(margin     , margin+by-ty*(ie-0)*2-ty/2);
+        ctx.lineTo(margin+tx/2, margin+by-ty*(ie-0)*2-ty/2);
+        if(ie>0){
+          ctx.lineTo(margin+tx/2, margin+by-ty*(ie-1)*2-ty/2);
+        }else{
+          ctx.lineTo(margin+tx/2, margin+by);
         }
+        ctx.stroke();
+        //draw right arrow
+        ctx.beginPath();
+        ctx.moveTo(margin+tx/2, margin+by-ty*(ie)*2-ty/2);
+        ctx.lineTo(margin     , margin+by-ty*(ie)*2-ty/2-tx/4);
+        ctx.lineTo(margin     , margin+by-ty*(ie)*2-ty/2+tx/4);
+        ctx.closePath();
+        ctx.fill();
+        //draw down arrow
+        ctx.beginPath();
+        if(ie>0){
+          ctx.moveTo(margin+tx/2,      margin+by-ty*(ie-1)*2-ty/2);
+          ctx.lineTo(margin+tx/2-tx/4, margin+by-ty*(ie-1)*2-ty);
+          ctx.lineTo(margin+tx/2+tx/4, margin+by-ty*(ie-1)*2-ty);
+        }else{
+          ctx.moveTo(margin+tx/2,      margin+by);
+          ctx.lineTo(margin+tx/2-tx/4, margin+by-ty/2);
+          ctx.lineTo(margin+tx/2+tx/4, margin+by-ty/2);
+        }
+        ctx.closePath();
+        ctx.fill();
       }//for(ie)
     }else if(kind == 'bottom'){
       for(let ie=0; ie<neq-1; ie++){
@@ -563,14 +588,27 @@ const drawcanout = function() {
       //thru
     }//for(y)
   }//for(x)
-  //draw cursor
-  //width of cursor
+
+  //draw view cursor
   ctx.lineWidth = 3;
   ctx.strokeStyle = 'black';
   if(vx>=scrx && vx<scrx+nblock && vy>=scry && vy<scry+nblock){
     ctx.strokeRect(mgnx+bx*(vx-scrx), mgny+sy-by*(vy-scry)-by, bx, by);
   }
   ctx.lineWidth = 1;
+
+  //draw cursor (circle)
+  ctx.fillStyle = 'black';
+  if(cx>=scrx && cx<scrx+nblock && cy>=scry && cy<scry+nblock){
+    ctx.beginPath();
+    ctx.arc(mgnx   +bx*(cx-scrx)+bx/2-bx/5+bx/6*cdirx, 
+            mgny+sy-by*(cy-scry)-by/2     -by/6*cdiry, bx/2/6, 0, Math.PI*2, false);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(mgnx   +bx*(cx-scrx)+bx/2+bx/5+bx/6*cdirx,
+            mgny+sy-by*(cy-scry)-by/2     -by/6*cdiry, bx/2/6, 0, Math.PI*2, false);
+    ctx.fill();
+  }
 
 }//drawcanout
 // slide by swipe and zoom by pinch
@@ -755,7 +793,7 @@ canout.addEventListener('mouseout', (e) => {
   dragging = false;
 });
 // form events -------------------------------------------
-// by button
+// zoom button
 document.getElementById('zoomin').addEventListener('click', function(e){
   zoom(nblock-1);
   drawcanout();
@@ -774,6 +812,75 @@ for(let i=0; i<nkind; i++){
     drawcanin();
   });
 }
+// reset button
+document.getElementById('reset').addEventListener('click', function(e){
+  initmath();
+  drawcanin();
+  drawcanout();
+  e.preventDefault();
+  return false;
+});
+// proceed button
+document.getElementById('proceed').addEventListener('click', function(e){
+  const k = kind2name[getkind(cx, cy)];
+  if(k == 'start'){
+    cdirx = +1;
+  }else if(k == 'diag'){
+    if(cdirx == -1 && cdiry == -1){
+    }else if(cdirx == -1 && cport == 0){//diagonal
+      cdirx = -1;
+      cdiry = -1;
+    }else if(cdiry == +1){//incrementer
+      cdiry = -1;
+      cport ++;
+    }else if(cdirx == +1){//reset
+      cdirx = 0;
+      cdiry = -1;
+      cport = 0;
+    }else if(cdiry == -1){//condition
+      cdiry = +1;
+    }else if(cdirx == -1){//go to amplifier
+      cdirx = 0;
+      cdiry = +1;
+    }
+  }else if(isFinite(k)){//prime
+    if(cdiry == -1){//filter
+      if(blockers[cport][prime2kind[k]]==1){//stop
+        cdiry = +1;
+      }else{
+        //thru
+      }
+    }else if(cdiry == +1){//divisor
+      if(divs[cport]==k){//divide
+        cdiry = 0;
+        cdirx = -1;
+      }else{
+        //thru
+      }
+    }else if(cdirx == -1){//goto diag
+      //thry
+    }else if(cdirx == +1){//reset equation
+      cdirx = 0;
+      cdiry = -1;
+    }
+  }else if(k == 'bottom'){
+    cdiry = +1;
+  }else if(k == 'amp'){
+    cdiry = 0;
+    cdirx = +1;
+  }else if(k == 'thru'){
+    //thru
+  }
+  cx += cdirx;
+  cy += cdiry;
+  vx = cx;
+  vy = cy;
+  e.preventDefault();
+  clickblock(vx, vy);
+  drawcanout();
+  drawcanin();
+  return false;
+});
 // save button
 form0.save.addEventListener('click', () => {
   // Convert canvas content to a data URL (base64-encoded PNG)
