@@ -1,4 +1,4 @@
-const jsversion = 'v0.5';
+const jsversion = 'v0.7';
 const neq    = 14; //number of equations
 const nprime =  8; //number of prime numbers
 const nkind  = 13; //number of kinds of blocks
@@ -60,54 +60,53 @@ window.onload = function() {
       'rgb(255,255,255)', //white
     ];
   }
-
   for(let i=0; i<nkind; i++){
     document.getElementById('kind'+i).style.backgroundColor = kind2color[i];
   }
-  for(let i=0; i<nkind; i++){
-    form0.kinds[i].addEventListener('click', function(){
-      drawin();
-    });
-  } 
-  window.addEventListener('resize', resize);
   resize();
-
+}
+const initgui = function(){
+  resize();
 }
 const resize = function() {
   const mgnx = 40;
   const mgny = 0;
   const wx =  window.innerWidth  - mgnx;
-  const wy = (window.innerHeight - mgny)/2;
+  const wy = (window.innerHeight - mgny) / 2;
   const w = Math.min(wx, wy);
-  canin.width  = w;
-  canin.height = w;
-  canout.width  = w;
-  canout.height = w;
-  drawin();
-  drawout();
+  
+  const dpr = window.devicePixelRatio || 1;
+  canin.width = w * dpr;
+  canin.height = w * dpr;
+  canout.width = w * dpr;
+  canout.height = w * dpr;
+  
+  canin.style.width = `${w}px`;
+  canin.style.height = `${w}px`;
+  canout.style.width = `${w}px`;
+  canout.style.height = `${w}px`;
+
+  ctxin.scale(dpr, dpr);
+  ctxout.scale(dpr, dpr);
+
+  drawcanin();
+  drawcanout();
+};
+const print = function(str){
+  document.getElementById('debug').style.display = 'block';
+  document.getElementById('debug').textContent = str;
 }
-
-form0.save.addEventListener('click', () => {
-    // Convert canvas content to a data URL (base64-encoded PNG)
-    const image = canin.toDataURL('image/png');
-
-    // Create a temporary link element
-    const link = document.createElement('a');
-    link.href = image; // Set the link href to the data URL
-    link.download = 'canvas-image.png'; // Set the default file name
-
-    // Simulate a click on the link to trigger download
-    link.click();
-});
-
+const println = function(str){
+  print(str + '\n');
+}
 // Add event listener to the button
 const margin_in = 20;
-const drawin = function() {
+const drawcanin = function() {
   // settings
   const margin = margin_in;
   const ctx = ctxin;
-  const wx     = canin.width;
-  const wy     = canin.height;
+  const wx     = canin.width  / window.devicePixelRatio;
+  const wy     = canin.height / window.devicePixelRatio;
   const ntile  = neq*2;
   let   tx     = Math.floor((wx-2*margin)/ntile);
   let   ty     = Math.floor((wy-2*margin)/ntile);
@@ -118,7 +117,7 @@ const drawin = function() {
   }
   const bx     = tx*ntile;
   const by     = ty*ntile;
-
+  
   //draw a background
   ctx.fillStyle = 'white';
   ctx.fillRect(0, 0, wx, wy);
@@ -436,13 +435,13 @@ const margin_out = 20;
 let cx = 0; //current block x
 let cy = 0; //current block y
 let nblock = 10;
-const drawout = function() {
+const drawcanout = function() {
   // settings
   const ctx = ctxout;
-  const wx     = canout.width;
-  const wy     = canout.height;
-  let   bx     = Math.floor((wx-2*margin_out)/(nblock+1));
-  let   by     = Math.floor((wy-2*margin_out)/(nblock+1));
+  const wx     = canout.width / window.devicePixelRatio;
+  const wy     = canout.height / window.devicePixelRatio;
+  let   bx     = ((wx-2*margin_out)/(nblock+1));
+  let   by     = ((wy-2*margin_out)/(nblock+1));
   mgnx = margin_out + bx;
   mgny = margin_out;
   if(bx>by){ bx = by; }else{ by = bx; }
@@ -547,35 +546,83 @@ const drawout = function() {
     }
   }
 }
-// mouse wheel event to zoom in out
-const nblockmin = 2;
-const nblockmax = 70;
-canout.addEventListener('wheel', (e) => {
-  e.preventDefault();
-  //change nblock
-  if(e.deltaY < 0){
-    nblock -= 1;
-  }else if(e.deltaY > 0){
-    nblock += 1;
-  }
-  if(nblock < nblockmin){
-    nblock = nblockmin;
-  }else if(nblock > nblockmax){
-    nblock = nblockmax;
-  }
-
-  drawout();
-  //console.log("nblock = " + nblock);
-});
-// mouse drag and drop to move by cx, cy
+// GUI
+// slide by swipe and zoom by pinch
 let dragging = false;
 let downx = 0;
 let downy = 0;
 let downcx = cx;
 let downcy = cy;
+let downx2 = 0;
+let downy2 = 0;
+let downnblock = nblock;
+canout.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  downx = e.touches[0].clientX * window.devicePixelRatio;
+  downy = e.touches[0].clientY * window.devicePixelRatio;
+  downcx = cx;
+  downcy = cy;
+  if(e.touches.length == 2){
+    downx2 = e.touches[1].clientX * window.devicePixelRatio;
+    downy2 = e.touches[1].clientY * window.devicePixelRatio;
+    downnblock = nblock;
+  }
+});
+canout.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  if(e.touches.length == 1){
+    const mx = e.touches[0].clientX * window.devicePixelRatio;
+    const my = e.touches[0].clientY * window.devicePixelRatio;
+    cx = downcx + Math.floor((downx - mx) / (canout.width / nblock));
+    cy = downcy + Math.floor((my - downy) / (canout.height / nblock));
+    drawcanout();
+  }else if(e.touches.length == 2){
+    const mx = e.touches[0].clientX * window.devicePixelRatio;
+    const my = e.touches[0].clientY * window.devicePixelRatio;
+    const mx2 = e.touches[1].clientX * window.devicePixelRatio;
+    const my2 = e.touches[1].clientY * window.devicePixelRatio;
+    const len0 = Math.sqrt((downx - downx2)**2 + (downy - downy2)**2);
+    const len1 = Math.sqrt((mx - mx2)**2 + (my - my2)**2);
+    const rate = len1 / len0;
+    if(rate > 1.1){
+      zoom(Math.floor(downnblock / rate));
+    }else if(rate < 0.9){
+      zoom(Math.floor(downnblock / rate));
+    }
+    //calculate fixed point
+    const fx = (downx + downx2) / 2;
+    const fy = (downy + downy2) / 2;
+    const fx2 = (mx + mx2) / 2;
+    const fy2 = (my + my2) / 2;
+    cx = downcx + Math.floor((fx - fx2) / (canout.width / nblock));
+    cy = downcy + Math.floor((fy2 - fy) / (canout.height / nblock));
+    drawcanout();
+  }
+});
+
+// by mouse
+// zoom by mouse wheel
+canout.addEventListener('wheel', function(e){
+  const rate = 1.1;
+  if(e.deltaY > 0){
+    nblocknew = Math.floor(nblock*rate);
+    if(nblocknew == nblock){
+      nblocknew = nblock + 1;
+    }
+  }else{
+    nblocknew = Math.floor(nblock/rate);
+    if(nblocknew == nblock){
+      nblocknew = nblock - 1;
+    }
+  }
+  zoom(nblocknew);
+  e.preventDefault();
+  return false;
+});
+// slide by mouse drag
 canout.addEventListener('mousedown', (e) => {
-  const wx = canout.width;
-  const wy = canout.height;
+  const wx = canout.width  / window.devicePixelRatio;
+  const wy = canout.height / window.devicePixelRatio;
   //dragx = convert browserx to canbas x pixcel
   downx =      Math.floor((e.clientX - canout.getBoundingClientRect().left) * wx / canout.clientWidth);
   downy = wy - Math.floor((e.clientY - canout.getBoundingClientRect().top ) * wy / canout.clientHeight);
@@ -595,8 +642,8 @@ canout.addEventListener('mousedown', (e) => {
 });
 canout.addEventListener('mousemove', (e) => {
   if(dragging){
-    const wx = canout.width;
-    const wy = canout.height;
+    const wx = canout.width  / window.devicePixelRatio;
+    const wy = canout.height / window.devicePixelRatio;
     const bx   = Math.floor((wx-2*margin_out)/(nblock+1));
     const by   = Math.floor((wy-2*margin_out)/(nblock+1));
     const mgnx = margin_out + bx;
@@ -610,18 +657,69 @@ canout.addEventListener('mousemove', (e) => {
     const mbx = Math.floor((   mx - mgnx) / bx);
     const mby = Math.floor((   my - mgny) / by);
     //console.log("mbx = " + mbx + ", mby = " + mby + ", dbx = " + dbx + ", dby = " + dby + ", mbx-dbx = " + (mbx-dbx) + ", mby-dby = " + (mby-dby));
-    cx = downcx - (mbx - dbx);
-    cy = downcy - (mby - dby);
-    drawout();
+    newcx = downcx - (mbx - dbx);
+    newcy = downcy - (mby - dby);
+    if(!isNaN(newcx) && !isNaN(newcy)){
+      cx = newcx;
+      cy = newcy;
+    }
+    drawcanout();
   }
 });
 canout.addEventListener('mouseup', (e) => {
   dragging = false;
 });
-// how can I dragging = false when mouse out of canvas?
 canout.addEventListener('mouseout', (e) => {
   dragging = false;
 });
+// form events -------------------------------------------
+// by button
+document.getElementById('zoomin').addEventListener('click', function(e){
+  zoom(nblock-1);
+  e.preventDefault();
+  return false;
+});
+document.getElementById('zoomout').addEventListener('click', function(e){
+  zoom(nblock+1);
+  e.preventDefault();
+  return false;
+});
+// radio button
+for(let i=0; i<nkind; i++){
+  form0.kinds[i].addEventListener('click', function(){
+    drawcanin();
+  });
+}
+// save button
+form0.save.addEventListener('click', () => {
+    // Convert canvas content to a data URL (base64-encoded PNG)
+    const image = canin.toDataURL('image/png');
+
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = image; // Set the link href to the data URL
+    link.download = 'canvas-image.png'; // Set the default file name
+
+    // Simulate a click on the link to trigger download
+    link.click();
+});
+// resize
+window.addEventListener('resize', resize);
+//zoom common
+const nblockmin = 2;
+const nblockmax = 1000;
+const zoom = function(nblocknew){
+  if(nblocknew < nblockmin){
+    nblock = nblockmin;
+  }else if(nblocknew > nblockmax){
+    nblock = nblockmax;
+  }else{
+    nblock = nblocknew;
+  }
+  drawcanout();
+}
+
+
 const real2color = (i, bmin=0, bmax=1) => {
   let r, g, b;
   if(i < 1/3){
@@ -642,4 +740,3 @@ const real2color = (i, bmin=0, bmax=1) => {
   b = (b * (bmax - bmin) + bmin) * 255;
   return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
-
