@@ -15,6 +15,11 @@
       }
       body {
         font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        -moz-user-select: none;
       }
       .container {
         display: flex;
@@ -25,6 +30,9 @@
         flex: 1 1 auto;
         vertical-align: top;
       }
+      address {
+        text-align: right;
+      }
     </style>
 </head>
 <body><form id="form0">
@@ -34,10 +42,9 @@
 <div class="container">
   <div class="item">
     <canvas id="canout" width="400" height="400" style="border:1px solid #000;"></canvas><br>
-    <button id="zoomout" type=button>zoom out</button>
-    <button id="zoomin" type=button>zoom in</button> or use mouse wheel<br>
-    <button id="reset" type=button>reset</button>
-    <button id="proceed" type=button>proceed</button><br>
+    <button id="reset" type=button>reset</button> or key 'r' 
+    <button id="proceed" type=button>proceed</button> or space key<br>
+    zoom in/out by mouse wheel or pinch in/out<br>
     move view by drag or swipe<br>
     select block by click or tap<br>
   </div>
@@ -65,11 +72,10 @@
         <td><input type="radio" name="kinds" value="thru"         ></td><td class=kindtd id=kind12>thru</td>
       </tr>
     </table>
-    <button id="save">save png</button>
   </div>
 </div>
 
-<address id="address">pentation maze: version v0.9+<span id="jsversion"></span><br>
+<address id="address">pentation maze: version v0.10+<span id="jsversion"></span><br>
 programmed by <a href='https://twitter.com/koteitan'>koteitan</a> code at <a href='https://github.com/koteitan/pentamaze/'>github</a><br>
 </address>
 <script src="main.js"></script>

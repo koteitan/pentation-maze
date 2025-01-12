@@ -1,4 +1,4 @@
-const jsversion = 'v0.9';
+const jsversion = 'v0.10';
 //mathematics ----------------------------------
 const neq    = 14; //number of equations
 const nprime =  8; //number of prime numbers
@@ -793,35 +793,35 @@ canout.addEventListener('mouseout', (e) => {
   dragging = false;
 });
 // form events -------------------------------------------
-// zoom button
-document.getElementById('zoomin').addEventListener('click', function(e){
-  zoom(nblock-1);
-  drawcanout();
-  e.preventDefault();
-  return false;
-});
-document.getElementById('zoomout').addEventListener('click', function(e){
-  zoom(nblock+1);
-  drawcanout();
-  e.preventDefault();
-  return false;
-});
 // radio button
 for(let i=0; i<nkind; i++){
   form0.kinds[i].addEventListener('click', function(){
     drawcanin();
   });
 }
-// reset button
-document.getElementById('reset').addEventListener('click', function(e){
+// keydown
+document.addEventListener('keydown', function(e){
+  if(e.key == 'r'){
+    reset();
+    e.preventDefault();
+  }else if(e.key == ' '){
+    proceed();
+    e.preventDefault();
+  }
+});
+// reset
+const reset = function(){
   initmath();
+  while(cx < scrx        ){ scrx--; nblock++; }
+  while(cy < scry        ){ scry--; nblock++; }
+  while(cx >= scrx+nblock){ scrx++; nblock++; }
+  while(cy >= scry+nblock){ scry++; nblock++; }
   drawcanin();
   drawcanout();
-  e.preventDefault();
   return false;
-});
-// proceed button
-document.getElementById('proceed').addEventListener('click', function(e){
+}
+// proceed
+const proceed = function(){
   const k = kind2name[getkind(cx, cy)];
   if(k == 'start'){
     cdirx = +1;
@@ -873,27 +873,45 @@ document.getElementById('proceed').addEventListener('click', function(e){
   }
   cx += cdirx;
   cy += cdiry;
+
+  while(cx < scrx        ){ scrx--; nblock++; }
+  while(cy < scry        ){ scry--; nblock++; }
+  while(cx >= scrx+nblock){ scrx++; nblock++; }
+  while(cy >= scry+nblock){ scry++; nblock++; }
+
   vx = cx;
   vy = cy;
-  e.preventDefault();
   clickblock(vx, vy);
   drawcanout();
   drawcanin();
   return false;
-});
-// save button
-form0.save.addEventListener('click', () => {
-  // Convert canvas content to a data URL (base64-encoded PNG)
-  const image = canin.toDataURL('image/png');
+}
+document.getElementById('reset').addEventListener('click', reset);
+let intervalid = null;
+let isfirst = true;
+const looptoproceed = function(){
+  if(true){
+    proceed();
+    if(isfirst){
+      isfirst = false;
+      intervalid = setTimeout(looptoproceed, 300);
+    }else{
+      intervalid = setTimeout(looptoproceed, 30);
+    }
+  }
+}
+const stoptoproceed = function(){
+  clearInterval(intervalid);
+  intervalid = null;
+  isfirst = true;
+}
+document.getElementById('proceed').addEventListener('mousedown', looptoproceed);
+document.getElementById('proceed').addEventListener('mouseup', stoptoproceed);
+document.getElementById('proceed').addEventListener('mouseout', stoptoproceed);
+document.getElementById('proceed').addEventListener('touchstart', looptoproceed);
+document.getElementById('proceed').addEventListener('touchend', stoptoproceed);
+document.getElementById('proceed').addEventListener('touchcancel', stoptoproceed);
 
-  // Create a temporary link element
-  const link = document.createElement('a');
-  link.href = image; // Set the link href to the data URL
-  link.download = 'canvas-image.png'; // Set the default file name
-
-  // Simulate a click on the link to trigger download
-  link.click();
-});
 // resize
 const resize = function() {
   const mgnx = 40;
