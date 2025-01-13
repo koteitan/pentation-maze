@@ -1,8 +1,8 @@
-const jsversion = 'v0.10';
+const jsversion = 'v0.11';
 //mathematics ----------------------------------
 const kind2name  = ['2','3','5','7','11','13','17','19',
   'amp3','amp5','amp7', 'amp9','amp13','amp17','amp19','amp25','amp49','amp121',
-  'diag','start','bottom','thru'];
+  'diag','bottom','start','goal','thru'];
 const primes = [2,3,5,7,11,13,17,19];
 const amps = [3,5,7,9,13,17,19,25,49,121];
 const blockers = [ //blockers[ie][ip]
@@ -57,6 +57,9 @@ for (let k = 0; k < nkind; k++) {
 const getkind = function(x, y){
   if(x==0 && y==8){
     return name2kind('start');
+  }
+  if(x==0 && y==0){
+    return name2kind('goal');
   }
   if(x>=0 && y>=0 && x==y){
     return name2kind('diag');
@@ -121,7 +124,7 @@ window.onload = function() {
       'rgb(  0,128,255)', //sky blue 11
       'rgb(  0,  0,255)', //blue     13
       'rgb(128,  0,255)', //purple   17
-      'rgb(255,  0,255)', //magenta  19
+      'rgb(255,128,255)', //magenta  19
       'rgb(255,192,192)', //pink     amp3
       'rgb(255,192,128)', //orange   amp5
       'rgb(255,255,192)', //yellow   amp7
@@ -133,8 +136,9 @@ window.onload = function() {
       'rgb(255,192,255)', //magenta  amp49
       'rgb(255,234,255)', //magenta  amp121
       'rgb(255,  0,  0)', //red      diag
-      'rgb(128,128,128)', //gray     bottom
-      'rgb(192,192,192)', //silver   start
+      'rgb(192,192,192)', //silver   bottom
+      'magenta',          //magenta  start
+      'gold'            , //gold     goal
       'rgb(255,255,255)', //white    thru
     ];
   }
@@ -385,7 +389,7 @@ const drawcanin = function() {
       ctx.lineTo(margin+tx*1+tx/2     , margin+by-ty-ty/2-ty/2);
       ctx.closePath();
       ctx.fill();
-      for(let ie=0; ie<neq-1; ie++){
+      for(let ie=0; ie<neq; ie++){
         //condition-incrementer
         //connect arc from bottom ports ie*3+1 to bottom ports (ie+1)*3
         colorpath(iscur && ie==cport && cdiry==+1);
@@ -404,45 +408,63 @@ const drawcanin = function() {
         ctx.fill();
         //connect L shape lines from right ports ie*3 +1 to top ports ie*3+1
         if(ie>0){
-          colorpath(iscur && ie==cport && cdirx==-1);
-          ctx.beginPath();
-          ctx.moveTo(margin+bx             , margin+by-ty*ie*3-ty-ty/2);
-          ctx.lineTo(margin+tx*ie*3+tx+tx  , margin+by-ty*ie*3-ty-ty/2);
-          ctx.arc   (margin+tx*ie*3+tx+tx  , margin+by-ty*ie*3-ty-ty, tx/2, Math.PI/2, Math.PI, false);
-          ctx.lineTo(margin+tx*ie*3+tx+tx/2, margin);
-          ctx.stroke();
-          //draw up arrow
-          ctx.beginPath();
-          ctx.moveTo(margin+tx*ie*3+tx+tx/2,      margin     );
-          ctx.lineTo(margin+tx*ie*3+tx+tx/2-tx/4, margin+tx/2);
-          ctx.lineTo(margin+tx*ie*3+tx+tx/2+tx/4, margin+tx/2);
-          ctx.closePath();
-          ctx.fill();
+          if(eq2amp[ie]!=1){
+            //goto amplifier
+            colorpath(iscur && ie==cport && cdirx==-1);
+            ctx.beginPath();
+            ctx.moveTo(margin+bx             , margin+by-ty*ie*3-ty-ty/2);
+            ctx.lineTo(margin+tx*ie*3+tx+tx  , margin+by-ty*ie*3-ty-ty/2);
+            ctx.arc   (margin+tx*ie*3+tx+tx  , margin+by-ty*ie*3-ty-ty, tx/2, Math.PI/2, Math.PI, false);
+            ctx.lineTo(margin+tx*ie*3+tx+tx/2, margin);
+            ctx.stroke();
+            //draw up arrow
+            ctx.beginPath();
+            ctx.moveTo(margin+tx*ie*3+tx+tx/2,      margin     );
+            ctx.lineTo(margin+tx*ie*3+tx+tx/2-tx/4, margin+tx/2);
+            ctx.lineTo(margin+tx*ie*3+tx+tx/2+tx/4, margin+tx/2);
+            ctx.closePath();
+            ctx.fill();
+          }else{
+            //amplifier by 1
+            colorpath(iscur && ie==cport && cdirx==-1);
+            //connect arc right ports ie*3+1 to bottom ports 0
+            ctx.beginPath();
+            ctx.moveTo(margin+bx,   margin+by-ty*ie*3-ty-ty/2);
+            ctx.lineTo(margin+tx/2, margin+by-ty*ie*3-ty-ty/2);
+            ctx.stroke();
+            //draw arrow
+            ctx.beginPath();
+            ctx.moveTo(margin+tx/2     , margin+by-ty*ie*3-ty-ty/2     );
+            ctx.lineTo(margin+tx/2+tx/2, margin+by-ty*ie*3-ty-ty/2-ty/4);
+            ctx.lineTo(margin+tx/2+tx/2, margin+by-ty*ie*3-ty-ty/2+ty/4);
+            ctx.closePath();
+            ctx.fill();
+          }
         }
         //connect L shape lines from left ports ie*3 to bottom ports 0
         colorpath(iscur && ie==cport && cdirx==+1);
         ctx.beginPath();
-        ctx.moveTo(margin     , margin+by-ty*(ie-0)*2-ty/2);
-        ctx.lineTo(margin+tx/2, margin+by-ty*(ie-0)*2-ty/2);
+        ctx.moveTo(margin     , margin+by-ty*ie*3-ty/2);
+        ctx.lineTo(margin+tx/2, margin+by-ty*ie*3-ty/2);
         if(ie>0){
-          ctx.lineTo(margin+tx/2, margin+by-ty*(ie-1)*2-ty/2);
+          ctx.lineTo(margin+tx/2, margin+by-ty*(ie-1)*3-ty/2);
         }else{
           ctx.lineTo(margin+tx/2, margin+by);
         }
         ctx.stroke();
         //draw right arrow
         ctx.beginPath();
-        ctx.moveTo(margin+tx/2, margin+by-ty*(ie)*2-ty/2);
-        ctx.lineTo(margin     , margin+by-ty*(ie)*2-ty/2-tx/4);
-        ctx.lineTo(margin     , margin+by-ty*(ie)*2-ty/2+tx/4);
+        ctx.moveTo(margin+tx/2, margin+by-ty*ie*3-ty/2);
+        ctx.lineTo(margin     , margin+by-ty*ie*3-ty/2-tx/4);
+        ctx.lineTo(margin     , margin+by-ty*ie*3-ty/2+tx/4);
         ctx.closePath();
         ctx.fill();
         //draw down arrow
         ctx.beginPath();
         if(ie>0){
-          ctx.moveTo(margin+tx/2,      margin+by-ty*(ie-1)*2-ty/2);
-          ctx.lineTo(margin+tx/2-tx/4, margin+by-ty*(ie-1)*2-ty);
-          ctx.lineTo(margin+tx/2+tx/4, margin+by-ty*(ie-1)*2-ty);
+          ctx.moveTo(margin+tx/2,      margin+by-ty*(ie-1)*3-ty/2);
+          ctx.lineTo(margin+tx/2-tx/4, margin+by-ty*(ie-1)*3-ty);
+          ctx.lineTo(margin+tx/2+tx/4, margin+by-ty*(ie-1)*3-ty);
         }else{
           ctx.moveTo(margin+tx/2,      margin+by);
           ctx.lineTo(margin+tx/2-tx/4, margin+by-ty/2);
@@ -669,32 +691,34 @@ const drawcanout = function() {
           }
         }
       }
-      let ikind = nprime;
-      //starter
-      color = kind2color[ikind++];
+      //start
       if(px==0 && py==8){
+        color = kind2color[name2kind('start')];
+        drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
+        continue;
+      }
+      //goal
+      if(px==0 && py==0){
+        color = kind2color[name2kind('goal')];
         drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
         continue;
       }
       //diag
-      color = kind2color[ikind++];
       if(px>=0 && py>=0 && px==py){
+        color = kind2color[name2kind('diag')];
         drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
         continue;
       }
       //amp
-      color = kind2color[ikind++];
-      if(px>0 && py>0){
-        for(let ie=0; ie<neq; ie++){
-          // fill color by amp when py = px * amp
-          if(py == px * eq2amp[ie] && eq2amp[ie] > 1){
-            drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
-          }
+      for(let a=0;a<namp;a++){
+        // fill color by amp when py = px * amp
+        if(px>0 && py == px * amps[a] && amps[a] > 1){
+          color = kind2color[name2kind('amp'+amps[a])];
+          drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
         }
-        continue;
       }
       //bottom
-      color = kind2color[ikind++];
+      color = kind2color[name2kind('bottom')];
       if(px>0 && py==0){
         drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
         continue;
@@ -940,10 +964,10 @@ const proceed = function(){
   if(k == 'start'){
     cdirx = +1;
   }else if(k == 'diag'){
-    if(cdirx == -1 && cdiry == -1){
-    }else if(cdirx == -1 && cport == 0){//diagonal
-      cdirx = -1;
-      cdiry = -1;
+    if(cdirx == -1 && cdiry == -1){//diagonal
+    }else if(cdirx == -1 && cport == 0){//to solve
+      cdirx = -1; //diagonal
+      cdiry = -1; //diagonal
     }else if(cdiry == +1){//incrementer
       cdiry = -1;
       cport ++;
@@ -954,8 +978,14 @@ const proceed = function(){
     }else if(cdiry == -1){//condition
       cdiry = +1;
     }else if(cdirx == -1){//go to amplifier
-      cdirx = 0;
-      cdiry = +1;
+      if(eq2amp[cport] == 1){//as amp
+        cdirx = 0;
+        cdiry = -1;// go down
+        cport = 0; // to eq0
+      }else{
+        cdirx = 0;
+        cdiry = +1;
+      }
     }
   }else if(isFinite(k)){//prime
     if(cdiry == -1){//filter
@@ -982,6 +1012,9 @@ const proceed = function(){
       cdirx = 0;
       cdiry = -1;
     }
+  }else if(k == 'goal'){
+    cdirx = 0;
+    cdiry = 0;
   }else if(k == 'bottom'){
     cdiry = +1;
     cmode = 1;
