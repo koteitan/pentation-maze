@@ -259,12 +259,25 @@ const drawcanin = function() {
         ctx.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+by-tx/2);
         ctx.closePath();
         ctx.fill();
+        //connect top ports ie * 2 to bottom ports ie * 2
+        colorpath(iscur && ie==cport && cdiry==-1);
+        ctx.beginPath();
+        ctx.moveTo(margin+tx*ie*2+tx/2, margin+by);
+        ctx.lineTo(margin+tx*ie*2+tx/2, margin);
+        ctx.stroke();
+        //draw arrow
+        ctx.beginPath();
+        ctx.moveTo(margin+tx*ie*2+tx/2     , margin+by     );
+        ctx.lineTo(margin+tx*ie*2+tx/2+tx/4, margin+by-tx/2);
+        ctx.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+by-tx/2);
+        ctx.closePath();
+        ctx.fill();
       }
       //divisor
       if(eq2div[ie]==selp){
         //dividing enable
-        colorpath(iscur && ie==cport && cdiry==+1);
         //connect bottom port ie * 2+1 to left port ie * 2 + 1 by rounded L-shape line
+        colorpath(iscur && ie==cport && cdiry==+1);
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
         ctx.lineTo(margin+tx*ie*2+tx+tx/2, margin+by-ty*ie*2-ty/2);
@@ -280,8 +293,8 @@ const drawcanin = function() {
         ctx.fill();
       }else{
         //dividing disable
-        colorpath(iscur && ie==cport && cdiry==+1);
         //connect right port ie * 2 + 1 to left port ie * 2 + 1 by line
+        colorpath(iscur && ie==cport && cdirx==-1);
         ctx.beginPath();
         ctx.moveTo(margin+bx, margin+by-ty*(ie*2+1)-ty/2);
         ctx.lineTo(margin   , margin+by-ty*(ie*2+1)-ty/2);
@@ -291,6 +304,19 @@ const drawcanin = function() {
         ctx.moveTo(margin     , margin+by-ty*(ie*2+1)-ty/2     );
         ctx.lineTo(margin+tx/2, margin+by-ty*(ie*2+1)-ty/2-tx/4);
         ctx.lineTo(margin+tx/2, margin+by-ty*(ie*2+1)-ty/2+tx/4);
+        ctx.closePath();
+        ctx.fill();
+        //connect bottom ports ie * 2 + 1 to top ports ie * 2 + 1
+        colorpath(iscur && ie==cport && cdiry==+1);
+        ctx.beginPath();
+        ctx.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
+        ctx.lineTo(margin+tx*ie*2+tx+tx/2, margin);
+        ctx.stroke();
+        //draw arrow
+        ctx.beginPath();
+        ctx.moveTo(margin+tx*ie*2+tx+tx/2     , margin     );
+        ctx.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+tx/2);
+        ctx.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+tx/2);
         ctx.closePath();
         ctx.fill();
       }
@@ -325,7 +351,7 @@ const drawcanin = function() {
       ctx.closePath();
       ctx.fill();
       //connect left ports 1 to diagonal line
-      colorpath(iscur && cport==1 && cdirx==-1);
+      colorpath(iscur && cport==0 && cdirx==-1);
       ctx.beginPath();
       ctx.moveTo(margin+bx,        margin+by-ty-ty/2);
       ctx.lineTo(margin+tx*1+tx/2, margin+by-ty-ty/2);
@@ -343,7 +369,7 @@ const drawcanin = function() {
       ctx.lineTo(margin+tx*1+tx/2     , margin+by-ty-ty/2-ty/2);
       ctx.closePath();
       ctx.fill();
-      for(let ie=0; ie<neq; ie++){
+      for(let ie=0; ie<neq-1; ie++){
         //condition-incrementer
         //connect arc from bottom ports ie * 2 + 1 to bottom ports ie * 2 + 2
         colorpath(iscur && ie==cport && cdiry==+1);
@@ -364,16 +390,16 @@ const drawcanin = function() {
         if(ie>0){
           colorpath(iscur && ie==cport && cdirx==-1);
           ctx.beginPath();
-          ctx.moveTo(margin+bx, margin+by-ty*ie*2-ty/2);
-          ctx.lineTo(margin+tx*ie*2+tx, margin+by-ty*ie*2-ty/2);
-          ctx.arc   (margin+tx*ie*2+tx, margin+by-ty*ie*2-ty, tx/2, Math.PI/2, Math.PI, false);
-          ctx.lineTo(margin+tx*ie*2+tx/2, margin);
+          ctx.moveTo(margin+bx             , margin+by-ty*ie*2-ty-ty/2);
+          ctx.lineTo(margin+tx*ie*2+tx+tx  , margin+by-ty*ie*2-ty-ty/2);
+          ctx.arc   (margin+tx*ie*2+tx+tx  , margin+by-ty*ie*2-ty-ty, tx/2, Math.PI/2, Math.PI, false);
+          ctx.lineTo(margin+tx*ie*2+tx+tx/2, margin);
           ctx.stroke();
           //draw up arrow
           ctx.beginPath();
-          ctx.moveTo(margin+tx*ie*2+tx/2,      margin     );
-          ctx.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+tx/2);
-          ctx.lineTo(margin+tx*ie*2+tx/2+tx/4, margin+tx/2);
+          ctx.moveTo(margin+tx*ie*2+tx+tx/2,      margin     );
+          ctx.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+tx/2);
+          ctx.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+tx/2);
           ctx.closePath();
           ctx.fill();
         }
@@ -410,44 +436,86 @@ const drawcanin = function() {
         ctx.fill();
       }//for(ie)
     }else if(kind == 'bottom'){
-      for(let ie=0; ie<neq-1; ie++){
-        //connect top ports ie * 2 + 1 and ie * 2 + 2 by arc
+      for(let ie=0; ie<neq; ie++){
+        //connect top ports ie * 2 and ie * 2 + 1 by arc
         colorpath(iscur && ie==cport && cdiry==-1);
         ctx.beginPath();
-        ctx.moveTo(margin+tx*(ie*2+1)+tx/2   , margin);
-        ctx.lineTo(margin+tx*(ie*2+1)+tx/2   , margin+ty/2);
-        ctx.arc   (margin+tx*(ie*2+1)+tx     , margin+ty/2, tx/2, Math.PI, 0, true);
-        ctx.lineTo(margin+tx*(ie*2+1)+tx+tx/2, margin);
+        ctx.moveTo(margin+tx*(ie*2)+tx/2   , margin);
+        ctx.lineTo(margin+tx*(ie*2)+tx/2   , margin+ty/2);
+        ctx.arc   (margin+tx*(ie*2)+tx     , margin+ty/2, tx/2, Math.PI, 0, true);
+        ctx.lineTo(margin+tx*(ie*2)+tx+tx/2, margin);
         ctx.stroke();
         //draw arrow
         ctx.beginPath();
-        ctx.moveTo(margin+tx*(ie*2+1)+tx+tx/2     , margin     );
-        ctx.lineTo(margin+tx*(ie*2+1)+tx+tx/2+tx/4, margin+tx/2);
-        ctx.lineTo(margin+tx*(ie*2+1)+tx+tx/2-tx/4, margin+tx/2);
+        ctx.moveTo(margin+tx*(ie*2)+tx+tx/2     , margin     );
+        ctx.lineTo(margin+tx*(ie*2)+tx+tx/2+tx/4, margin+tx/2);
+        ctx.lineTo(margin+tx*(ie*2)+tx+tx/2-tx/4, margin+tx/2);
         ctx.closePath();
         ctx.fill();
       }
-    }else if(kind == 'amp'){
+    }else if(kind.startsWith('amp')){
       for(let ie=0; ie<neq; ie++){
-        //connect bottom ports ie * 2 and right port neq - ie * 2 by L-shape line
-        colorpath(iscur && ie==cport && cdiry==+1);
-        ctx.beginPath();
-        ctx.moveTo(margin+tx*ie*2+tx/2, margin+by);
-        ctx.lineTo(margin+tx*ie*2+tx/2, margin+by-ty*ie*2);
-        ctx.arc   (margin+tx*ie*2+tx  , margin+by-ty*ie*2, tx/2, Math.PI, -Math.PI/2, false);
-        ctx.lineTo(margin+bx          , margin+by-ty*ie*2-ty/2);
-        ctx.stroke();
-        //round corner
-        ctx.beginPath();
-        ctx.moveTo(margin+tx*ie*2+tx/2, margin+by-ty*ie*2);
-        ctx.stroke();
-        //draw arrow
-        ctx.beginPath();
-        ctx.moveTo(margin+bx,      margin+by-ty*ie*2-ty/2     );
-        ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2-tx/4);
-        ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2+tx/4);
-        ctx.closePath();
-        ctx.fill();
+        if(eq2amp[ie] == parseInt(kind.substring(3))){
+          //connect bottom ports ie*2+1 and right port ie*2+1 by L-shape line
+          colorpath(iscur && ie==cport && cdiry==+1);
+          ctx.beginPath();
+          ctx.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
+          ctx.lineTo(margin+tx*ie*2+tx+tx/2, margin+by-ty*ie*2);
+          ctx.arc   (margin+tx*ie*2+tx+tx  , margin+by-ty*ie*2, tx/2, Math.PI, -Math.PI/2, false);
+          ctx.lineTo(margin+bx             , margin+by-ty*ie*2-ty/2);
+          ctx.stroke();
+          //round corner
+          ctx.beginPath();
+          ctx.moveTo(margin+tx*ie*2+tx/2, margin+by-ty*ie*2);
+          ctx.stroke();
+          //draw arrow
+          ctx.beginPath();
+          ctx.moveTo(margin+bx,      margin+by-ty*ie*2-ty/2     );
+          ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2-ty/4);
+          ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2+ty/4);
+          ctx.closePath();
+          ctx.fill();
+        }else{
+          //connect bottom ports ie * 2 to top ports ie * 2
+          colorpath(iscur && ie==cport && cdiry==+1);
+          ctx.beginPath();
+          ctx.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
+          ctx.lineTo(margin+tx*ie*2+tx+tx/2, margin);
+          ctx.stroke();
+          //draw arrow
+          ctx.beginPath();
+          ctx.moveTo(margin+tx*ie*2+tx+tx/2     , margin     );
+          ctx.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+ty/2);
+          ctx.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+ty/2);
+          ctx.closePath();
+          ctx.fill();
+          //connect right ports ie * 2 to left ports ie * 2
+          colorpath(iscur && ie==cport && cdirx==-1);
+          ctx.beginPath();
+          ctx.moveTo(margin+bx, margin+by-ty*ie*2-ty-ty/2);
+          ctx.lineTo(margin   , margin+by-ty*ie*2-ty-ty/2);
+          ctx.stroke();
+          //draw arrow
+          ctx.beginPath();
+          ctx.moveTo(margin     , margin+by-ty*ie*2-ty-ty/2     );
+          ctx.lineTo(margin+tx/2, margin+by-ty*ie*2-ty-ty/2-tx/4);
+          ctx.lineTo(margin+tx/2, margin+by-ty*ie*2-ty-ty/2+tx/4);
+          ctx.closePath();
+          ctx.fill();
+          //connect left ports ie * 2 + 1 to right ports ie * 2 + 1
+          colorpath(iscur && ie==cport && cdirx==+1);
+          ctx.beginPath();
+          ctx.moveTo(margin+bx, margin+by-ty*ie*2-ty/2);
+          ctx.lineTo(margin   , margin+by-ty*ie*2-ty/2);
+          ctx.stroke();
+          //draw arrow
+          ctx.beginPath();
+          ctx.moveTo(margin+bx     , margin+by-ty*ie*2-ty/2     );
+          ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2-ty/4);
+          ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2+ty/4);
+          ctx.closePath();
+          ctx.fill();
+        }
       }
     }else if(kind == 'thru'){
       for(let ie=0; ie<neq; ie++){
@@ -460,11 +528,11 @@ const drawcanin = function() {
         //draw arrow
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx/2     , margin+by     );
-        ctx.lineTo(margin+tx*ie*2+tx/2+tx/4, margin+by-tx/2);
-        ctx.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+by-tx/2);
+        ctx.lineTo(margin+tx*ie*2+tx/2+tx/4, margin+by-ty/2);
+        ctx.lineTo(margin+tx*ie*2+tx/2-tx/4, margin+by-ty/2);
         ctx.closePath();
         ctx.fill();
-        //connect bottom ports ie * 2 + 1 to right ports ie * 2 + 1
+        //connect bottom ports ie * 2 + 1 to top ports ie * 2 + 1
         colorpath(iscur && ie==cport && cdiry==+1);
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx+tx/2, margin+by);
@@ -473,8 +541,8 @@ const drawcanin = function() {
         //draw arrow
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*2+tx+tx/2     , margin     );
-        ctx.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+tx/2);
-        ctx.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+tx/2);
+        ctx.lineTo(margin+tx*ie*2+tx+tx/2+tx/4, margin+ty/2);
+        ctx.lineTo(margin+tx*ie*2+tx+tx/2-tx/4, margin+ty/2);
         ctx.closePath();
         ctx.fill();
         //connect right ports ie * 2 to left ports ie * 2
@@ -485,9 +553,9 @@ const drawcanin = function() {
         ctx.stroke();
         //draw arrow
         ctx.beginPath();
-        ctx.moveTo(margin     , margin+by-ty*ie*2-ty/2     );
-        ctx.lineTo(margin+tx/2, margin+by-ty*ie*2-ty/2-tx/4);
-        ctx.lineTo(margin+tx/2, margin+by-ty*ie*2-ty/2+tx/4);
+        ctx.moveTo(margin+bx     , margin+by-ty*ie*2-ty/2     );
+        ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2-ty/4);
+        ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2+ty/4);
         ctx.closePath();
         ctx.fill();
         //connect left ports ie * 2 + 1 to right ports ie * 2 + 1
@@ -498,9 +566,9 @@ const drawcanin = function() {
         ctx.stroke();
         //draw arrow
         ctx.beginPath();
-        ctx.moveTo(margin+bx     , margin+by-ty*ie*2-ty-ty/2     );
-        ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty-ty/2-tx/4);
-        ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty-ty/2+tx/4);
+        ctx.moveTo(margin     , margin+by-ty*ie*2-ty-ty/2     );
+        ctx.lineTo(margin+tx/2, margin+by-ty*ie*2-ty-ty/2-tx/4);
+        ctx.lineTo(margin+tx/2, margin+by-ty*ie*2-ty-ty/2+tx/4);
         ctx.closePath();
         ctx.fill();
       }
