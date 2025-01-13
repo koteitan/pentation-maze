@@ -86,6 +86,7 @@ let cy   ; //current cursor y
 let cport; //current cursor port
 let cdirx; //current cursor port x direction
 let cdiry; //current cursor port y direction
+let cmode; //current cursor mode
 const initmath = function(){
   cx     =  0; //starter
   cy     =  8; //starter
@@ -94,6 +95,7 @@ const initmath = function(){
   cport  =  0; //start port
   cdirx  = +1; //right
   cdiry  =  0; //right
+  cmode  =  0; 
 }
 let kind2color = [];
 window.onload = function() {
@@ -273,16 +275,30 @@ const drawcanin = function() {
         ctx.closePath();
         ctx.fill();
       }
+      //return path by mode 0
+      //connect bottom ports ie*3+1 to top ports ie*3+1
+      colorpath(iscur && ie==cport && cdiry==+1 && cmode==0);
+      ctx.beginPath();
+      ctx.moveTo(margin+tx*ie*3+tx+tx/2, margin+by);
+      ctx.lineTo(margin+tx*ie*3+tx+tx/2, margin);
+      ctx.stroke();
+      //draw arrow
+      ctx.beginPath();
+      ctx.moveTo(margin+tx*ie*3+tx+tx/2     , margin     );
+      ctx.lineTo(margin+tx*ie*3+tx+tx/2+tx/4, margin+ty/2);
+      ctx.lineTo(margin+tx*ie*3+tx+tx/2-tx/4, margin+ty/2);
+      ctx.closePath();
+      ctx.fill();
       //divisor
       if(eq2div[ie]==selp){
         //dividing enable
         //connect bottom port ie*3+1 to left port ie*3+1 by rounded L-shape line
-        colorpath(iscur && ie==cport && cdiry==+1);
+        colorpath(iscur && ie==cport && cdiry==+1 && cmode==1);
         ctx.beginPath();
-        ctx.moveTo(margin+tx*ie*3+tx+tx/2, margin+by);
-        ctx.lineTo(margin+tx*ie*3+tx+tx/2, margin+by-ty*ie*3-ty/2);
-        ctx.arc   (margin+tx*ie*3+tx     , margin+by-ty*ie*3-ty, tx/2, 0, -Math.PI/2, true);
-        ctx.lineTo(margin                , margin+by-ty*ie*3-ty-ty/2);
+        ctx.moveTo(margin+tx*ie*3+tx*2+tx/2, margin+by);
+        ctx.lineTo(margin+tx*ie*3+tx*2+tx/2, margin+by-ty*ie*3-ty/2);
+        ctx.arc   (margin+tx*ie*3+tx*2     , margin+by-ty*ie*3-ty, tx/2, 0, -Math.PI/2, true);
+        ctx.lineTo(margin                  , margin+by-ty*ie*3-ty-ty/2);
         ctx.stroke();
         //draw arrow
         ctx.beginPath();
@@ -369,21 +385,21 @@ const drawcanin = function() {
       ctx.lineTo(margin+tx*1+tx/2     , margin+by-ty-ty/2-ty/2);
       ctx.closePath();
       ctx.fill();
-      for(let ie=0; ie<neq; ie++){
+      for(let ie=0; ie<neq-1; ie++){
         //condition-incrementer
-        //connect arc from bottom ports ie*3+1 to bottom ports ie*3+2
+        //connect arc from bottom ports ie*3+1 to bottom ports (ie+1)*3
         colorpath(iscur && ie==cport && cdiry==+1);
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*3+tx+tx/2   , margin+by);
         ctx.lineTo(margin+tx*ie*3+tx+tx/2   , margin+by-ty/2);
-        ctx.arc   (margin+tx*ie*3+tx+tx     , margin+by-ty/2, tx/2, Math.PI, 0, false);
-        ctx.lineTo(margin+tx*ie*3+tx+tx+tx/2, margin+by);
+        ctx.arc   (margin+tx*(ie+0.5)*3+tx    , margin+by-ty/2, tx, Math.PI, 0, false);
+        ctx.lineTo(margin+tx*(ie+1  )*3+tx/2  , margin+by);
         ctx.stroke();
         //draw arrow
         ctx.beginPath();
-        ctx.moveTo(margin+tx*(ie+1)*2+tx/2     , margin+by     );
-        ctx.lineTo(margin+tx*(ie+1)*2+tx/2+tx/4, margin+by-tx/2);
-        ctx.lineTo(margin+tx*(ie+1)*2+tx/2-tx/4, margin+by-tx/2);
+        ctx.moveTo(margin+tx*(ie+1)*3+tx/2     , margin+by     );
+        ctx.lineTo(margin+tx*(ie+1)*3+tx/2+tx/4, margin+by-tx/2);
+        ctx.lineTo(margin+tx*(ie+1)*3+tx/2-tx/4, margin+by-tx/2);
         ctx.closePath();
         ctx.fill();
         //connect L shape lines from right ports ie*3 +1 to top ports ie*3+1
@@ -520,7 +536,7 @@ const drawcanin = function() {
         ctx.closePath();
         ctx.fill();
         //connect bottom ports ie*3+1 to top ports ie*3+1
-        colorpath(iscur && ie==cport && cdiry==+1);
+        colorpath(iscur && ie==cport && cdiry==+1 && cmode==0);
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*3+tx+tx/2, margin+by);
         ctx.lineTo(margin+tx*ie*3+tx+tx/2, margin);
@@ -533,7 +549,7 @@ const drawcanin = function() {
         ctx.closePath();
         ctx.fill();
         //connect bottom ports ie*3+2 to top ports ie*3+2
-        colorpath(iscur && ie==cport && cdiry==+1);
+        colorpath(iscur && ie==cport && cdiry==+1 && cmode==1);
         ctx.beginPath();
         ctx.moveTo(margin+tx*ie*3+tx*2+tx/2, margin+by);
         ctx.lineTo(margin+tx*ie*3+tx*2+tx/2, margin);
@@ -949,9 +965,14 @@ const proceed = function(){
         //thru
       }
     }else if(cdiry == +1){//divisor
-      if(eq2div[cport]==k){//divide
-        cdiry = 0;
-        cdirx = -1;
+      if(cmode == 1){//waiting divisor
+        if(eq2div[cport]==k){//divide
+          cdiry = 0;
+          cdirx = -1;
+          cmode = 0;
+        }else{
+          //thru
+        }
       }else{
         //thru
       }
@@ -963,6 +984,7 @@ const proceed = function(){
     }
   }else if(k == 'bottom'){
     cdiry = +1;
+    cmode = 1;
   }else if(k.startsWith('amp')){
     const ie = parseInt(k.slice(3));
     if(eq2amp[cport] == ie){
