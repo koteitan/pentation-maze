@@ -1,8 +1,10 @@
 const jsversion = 'v0.10';
 //mathematics ----------------------------------
-const neq    = 14; //number of equations
-const nprime =  8; //number of prime numbers
-const nkind  = 13; //number of kinds of blocks
+const kind2name  = ['2','3','5','7','11','13','17','19',
+  'amp3','amp5','amp7', 'amp9','amp13','amp17','amp19','amp25','amp49','amp121',
+  'diag','start','bottom','thru'];
+const primes = [2,3,5,7,11,13,17,19];
+const amps = [3,5,7,9,13,17,19,25,49,121];
 const blockers = [ //blockers[ie][ip]
 // 2^a  3^b  5^c  7^d  11^e  13   17   19
    [1  , 0  , 1  , 0  , 0  ,  0  ,  0 ,  0],
@@ -20,11 +22,14 @@ const blockers = [ //blockers[ie][ip]
    [0  , 0  , 0  , 0  , 1  ,  0  ,  0 ,  0],
    [0  , 0  , 0  , 0  , 0  ,  0  ,  0 ,  1]
 ];
-const kind2name  = ['2','3','5','7','11','13','17','19','diag','amp','start','bottom','thru'];
-const prime2kind = [-1,-1,  0,  1, -1,  2, -1,  3, -1,  -1,-1, 4,-1,-1,-1, 5,-1,-1,-1, 6];
-const divs       = [ 2, 2, 3, 2, 5, 3, 5,  7, 13, 5, 17, 7, 19, 11]; //divisors
-const amps       = [ 0, 9,25,13,49,17,19,121,  1, 3,  1, 5,  1,  7]; //amplifier
-const primes     = [2,3,5,7,11,13,17,19];
+const eq2div = [ 2, 2, 3, 2, 5, 3, 5,  7, 13, 5, 17, 7, 19, 11]; //divs[e]
+const eq2amp = [ 0, 9,25,13,49,17,19,121,  1, 3,  1, 5,  1,  7]; //amps[e]
+
+const nkind  = kind2name.length;
+const nprime = primes.length;
+const namp   = amps.length;
+const neq    = blockers.length;
+
 const name2kind = function(name){
   for(let i=0; i<nkind; i++){
     if(kind2name[i] == name){
@@ -32,6 +37,22 @@ const name2kind = function(name){
     }
   }
   return -1;
+}
+const prime2kind = [];
+for (let p = 0; p < nprime; p++) {
+  for (let k = 0; k < nkind; k++) {
+    if (kind2name[k] == primes[p]) {
+      prime2kind[primes[p]] = k;
+    }
+  }
+}
+const amp2kind = [];
+for (let k = 0; k < nkind; k++) {
+  for (let a = 0; a < namp; a++) {
+    if (kind2name[k] == 'amp' + amps[a]) {
+      amp2kind[a] = k;
+    }
+  }
 }
 const getkind = function(x, y){
   if(x==0 && y==8){
@@ -41,9 +62,9 @@ const getkind = function(x, y){
     return name2kind('diag');
   }
   if(x>0 && y>0){
-    for(let a=0; a<amps.length; a++){
-      if(y == x * amps[a] && amps[a] > 1){
-        return name2kind('amp');
+    for(let e=0; e<neq; e++){
+      if(y == x * eq2amp[e] && eq2amp[e] > 1){
+        return name2kind('amp'+eq2amp[e]);
       }
     }
   }
@@ -91,23 +112,32 @@ window.onload = function() {
   }
   if(true){
     kind2color = [
-      'rgb(255,128,  0)', //orange   2
-      'rgb(255,255,  0)', //yellow   3
-      'rgb(  0,255,  0)', //green    5
-      'rgb(  0,255,255)', //scryan     7
+      'rgb(255,128,  0)', //orange    2
+      'rgb(255,255,  0)', //yellow    3
+      'rgb(  0,255,  0)', //green     5
+      'rgb(  0,255,255)', //scryan    7
       'rgb(  0,128,255)', //sky blue 11
       'rgb(  0,  0,255)', //blue     13
       'rgb(128,  0,255)', //purple   17
       'rgb(255,  0,255)', //magenta  19
-      'rgb(255,128,128)', //pink     diag
-      'rgb(255,  0,  0)', //red      amp
+      'rgb(255,192,192)', //pink     amp3
+      'rgb(255,192,128)', //orange   amp5
+      'rgb(255,255,192)', //yellow   amp7
+      'rgb(192,255,192)', //green    amp9
+      'rgb(192,255,255)', //scryan   amp13
+      'rgb(192,128,255)', //sky blue amp17
+      'rgb(192,192,255)', //blue     amp19
+      'rgb(128,192,255)', //purple   amp25
+      'rgb(255,192,255)', //magenta  amp49
+      'rgb(255,234,255)', //magenta  amp121
+      'rgb(255,  0,  0)', //red      diag
       'rgb(128,128,128)', //gray     bottom
       'rgb(192,192,192)', //silver   start
       'rgb(255,255,255)', //white    thru
     ];
   }
   for(let i=0; i<nkind; i++){
-    document.getElementById('kind'+i).style.backgroundColor = kind2color[i];
+    document.getElementById('kind'+kind2name[i]).style.backgroundColor = kind2color[i];
   }
   resize();
 }
@@ -231,7 +261,7 @@ const drawcanin = function() {
         ctx.fill();
       }
       //divisor
-      if(divs[ie]==selp){
+      if(eq2div[ie]==selp){
         //dividing enable
         colorpath(iscur && ie==cport && cdiry==+1);
         //connect bottom port ie * 2+1 to left port ie * 2 + 1 by rounded L-shape line
@@ -413,7 +443,7 @@ const drawcanin = function() {
         ctx.stroke();
         //draw arrow
         ctx.beginPath();
-        ctx.moveTo(margin+bx, margin+by-ty*ie*2-ty/2     );
+        ctx.moveTo(margin+bx,      margin+by-ty*ie*2-ty/2     );
         ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2-tx/4);
         ctx.lineTo(margin+bx-tx/2, margin+by-ty*ie*2-ty/2+tx/4);
         ctx.closePath();
@@ -571,9 +601,9 @@ const drawcanout = function() {
       //amp
       color = kind2color[ikind++];
       if(px>0 && py>0){
-        for(let a=0; a<amps.length; a++){
+        for(let ie=0; ie<neq; ie++){
           // fill color by amp when py = px * amp
-          if(py == px * amps[a] && amps[a] > 1){
+          if(py == px * eq2amp[ie] && eq2amp[ie] > 1){
             drawblock(mgnx+bx*x, mgny+sy-by*y-by, bx, by, color);
           }
         }
@@ -851,7 +881,7 @@ const proceed = function(){
         //thru
       }
     }else if(cdiry == +1){//divisor
-      if(divs[cport]==k){//divide
+      if(eq2div[cport]==k){//divide
         cdiry = 0;
         cdirx = -1;
       }else{
@@ -865,9 +895,14 @@ const proceed = function(){
     }
   }else if(k == 'bottom'){
     cdiry = +1;
-  }else if(k == 'amp'){
-    cdiry = 0;
-    cdirx = +1;
+  }else if(k.startsWith('amp')){
+    const ie = parseInt(k.slice(3));
+    if(eq2amp[cport] == ie){
+      cdiry = 0;
+      cdirx = +1;
+    }else{
+      //thru
+    }
   }else if(k == 'thru'){
     //thru
   }
