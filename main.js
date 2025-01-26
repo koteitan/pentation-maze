@@ -1,4 +1,4 @@
-const jsversion = 'v0.11';
+const jsversion = 'v1.0';
 //mathematics ----------------------------------
 const kind2name  = ['2','3','5','7','11','13','17','19',
   'amp3','amp5','amp7', 'amp9','amp13','amp17','amp19','amp25','amp49','amp121',
@@ -390,22 +390,24 @@ const drawcanin = function() {
       ctx.closePath();
       ctx.fill();
       for(let ie=0; ie<neq; ie++){
-        //condition-incrementer
-        //connect arc from bottom ports ie*3+1 to bottom ports (ie+1)*3
-        colorpath(iscur && ie==cport && cdiry==+1);
-        ctx.beginPath();
-        ctx.moveTo(margin+tx*ie*3+tx+tx/2   , margin+by);
-        ctx.lineTo(margin+tx*ie*3+tx+tx/2   , margin+by-ty/2);
-        ctx.arc   (margin+tx*(ie+0.5)*3+tx    , margin+by-ty/2, tx, Math.PI, 0, false);
-        ctx.lineTo(margin+tx*(ie+1  )*3+tx/2  , margin+by);
-        ctx.stroke();
-        //draw arrow
-        ctx.beginPath();
-        ctx.moveTo(margin+tx*(ie+1)*3+tx/2     , margin+by     );
-        ctx.lineTo(margin+tx*(ie+1)*3+tx/2+tx/4, margin+by-tx/2);
-        ctx.lineTo(margin+tx*(ie+1)*3+tx/2-tx/4, margin+by-tx/2);
-        ctx.closePath();
-        ctx.fill();
+        if(ie<neq-1){
+          //condition-incrementer
+          //connect arc from bottom ports ie*3+1 to bottom ports (ie+1)*3
+          colorpath(iscur && ie==cport && cdiry==+1);
+          ctx.beginPath();
+          ctx.moveTo(margin+tx*ie*3+tx+tx/2   , margin+by);
+          ctx.lineTo(margin+tx*ie*3+tx+tx/2   , margin+by-ty/2);
+          ctx.arc   (margin+tx*(ie+0.5)*3+tx    , margin+by-ty/2, tx, Math.PI, 0, false);
+          ctx.lineTo(margin+tx*(ie+1  )*3+tx/2  , margin+by);
+          ctx.stroke();
+          //draw arrow
+          ctx.beginPath();
+          ctx.moveTo(margin+tx*(ie+1)*3+tx/2     , margin+by     );
+          ctx.lineTo(margin+tx*(ie+1)*3+tx/2+tx/4, margin+by-tx/2);
+          ctx.lineTo(margin+tx*(ie+1)*3+tx/2-tx/4, margin+by-tx/2);
+          ctx.closePath();
+          ctx.fill();
+        }
         //connect L shape lines from right ports ie*3 +1 to top ports ie*3+1
         if(ie>0){
           if(eq2amp[ie]!=1){
@@ -1072,12 +1074,17 @@ document.getElementById('proceed').addEventListener('touchcancel', stoptoproceed
 
 // resize
 const resize = function() {
+
   const mgnx = 40;
   const mgny = 0;
   const wx =  window.innerWidth  - mgnx;
   const wy = (window.innerHeight - mgny) / 2;
-  const w = Math.min(wx, wy);
-  
+  let w;
+  if(form0.fixsizecheck.checked){
+    w = parseInt(form0.fixsizenum.value);
+  }else{
+    w = Math.min(wx, wy);
+  }
   const dpr = window.devicePixelRatio || 1;
   canin.width = w * dpr;
   canin.height = w * dpr;
@@ -1094,6 +1101,9 @@ const resize = function() {
 
   drawcanin();
   drawcanout();
+  if(!form0.fixsizecheck.checked){
+    form0.fixsizenum.value = canin.width;
+  }
 };
 window.addEventListener('resize', resize);
 //zoom common
@@ -1153,4 +1163,21 @@ function findfontsize(ctx, text, bx, by) {
   }
   return bestFontSize;
 }
+
+//    <input type="checkbox" id="fixsizecheck">fix size
+//    <input type="text" id="fixsizenum" size=4>
+//    <input type="button" id="fixsizebutton" value="apply">
+form0.fixsizebutton.addEventListener('click', resize);
+form0.fixsizenum.addEventListener('change', resize);
+form0.fixsizecheck.addEventListener('click', resize);
+form0.save.addEventListener('click', () => {
+  // Convert canvas content to a data URL (base64-encoded PNG)
+  const image = canin.toDataURL('image/png');
+
+  // Create a temporary link element
+  const link = document.createElement('a');
+  link.href = image; // Set the link href to the data URL
+  link.download = 'kot-penta-'+kind2name[getkind(vx, vy)]+'.png'; // Set the download attribute to the file name
+  link.click(); // Click the link
+});
 
